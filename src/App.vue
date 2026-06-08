@@ -7,7 +7,7 @@
         data-automation-id="nav-drawer-toggle"
         aria-label="Open navigation drawer"
       />
-      <v-app-bar-title>{{service.name | capitalize}}</v-app-bar-title>
+      <v-app-bar-title>Customer</v-app-bar-title>
     </v-app-bar>
 
     <v-navigation-drawer
@@ -16,49 +16,113 @@
       temporary
     >
       <v-list density="compact" nav>
-        {% for item in service.data_domains.controls %}
-        <v-list-subheader>{{ item | upper }} DOMAIN</v-list-subheader>
+        
+        <v-list-subheader>SUBSCRIPTION DOMAIN</v-list-subheader>
         <v-list-item
-          to="/{{ item | lower }}s"
+          to="/subscriptions"
           prepend-icon="mdi-view-list"
-          title="List {{ item }}s"
-          data-automation-id="nav-{{ item | lower }}s-list-link"
+          title="List Subscriptions"
+          data-automation-id="nav-subscriptions-list-link"
         />
         <v-list-item
-          to="/{{ item | lower }}s/new"
+          to="/subscriptions/new"
           prepend-icon="mdi-plus"
-          title="New {{ item }}"
-          data-automation-id="nav-{{ item | lower }}s-new-link"
+          title="New Subscription"
+          data-automation-id="nav-subscriptions-new-link"
         />
 
         <v-divider class="my-2" />
-        {% endfor %}
-        {% for item in service.data_domains.creates %}
-        <v-list-subheader>{{ item | upper }} DOMAIN</v-list-subheader>
+        
+        <v-list-subheader>DASHBOARD DOMAIN</v-list-subheader>
         <v-list-item
-          to="/{{ item | lower }}s"
+          to="/dashboards"
           prepend-icon="mdi-view-list"
-          title="List {{ item }}s"
-          data-automation-id="nav-{{ item | lower }}s-list-link"
+          title="List Dashboards"
+          data-automation-id="nav-dashboards-list-link"
         />
         <v-list-item
-          to="/{{ item | lower }}s/new"
+          to="/dashboards/new"
           prepend-icon="mdi-plus"
-          title="New {{ item }}"
-          data-automation-id="nav-{{ item | lower }}s-new-link"
+          title="New Dashboard"
+          data-automation-id="nav-dashboards-new-link"
         />
 
         <v-divider class="my-2" />
-        {% endfor %}
-        {% for item in service.data_domains.consumes %}
-        <v-list-subheader>{{ item | upper }} DOMAIN</v-list-subheader>
+        
+        <v-list-subheader>CARD DOMAIN</v-list-subheader>
         <v-list-item
-          to="/{{ item | lower }}s"
+          to="/cards"
           prepend-icon="mdi-view-list"
-          title="List {{ item }}s"
-          data-automation-id="nav-{{ item | lower }}s-list-link"
+          title="List Cards"
+          data-automation-id="nav-cards-list-link"
         />
-        {% endfor %}
+        <v-list-item
+          to="/cards/new"
+          prepend-icon="mdi-plus"
+          title="New Card"
+          data-automation-id="nav-cards-new-link"
+        />
+
+        <v-divider class="my-2" />
+        
+        
+        <v-list-subheader>EVENT DOMAIN</v-list-subheader>
+        <v-list-item
+          to="/events"
+          prepend-icon="mdi-view-list"
+          title="List Events"
+          data-automation-id="nav-events-list-link"
+        />
+        <v-list-item
+          to="/events/new"
+          prepend-icon="mdi-plus"
+          title="New Event"
+          data-automation-id="nav-events-new-link"
+        />
+
+        <v-divider class="my-2" />
+        
+        
+        <v-list-subheader>PROFILE DOMAIN</v-list-subheader>
+        <v-list-item
+          to="/profiles"
+          prepend-icon="mdi-view-list"
+          title="List Profiles"
+          data-automation-id="nav-profiles-list-link"
+        />
+        
+        <v-list-subheader>CUSTOMER DOMAIN</v-list-subheader>
+        <v-list-item
+          to="/customers"
+          prepend-icon="mdi-view-list"
+          title="List Customers"
+          data-automation-id="nav-customers-list-link"
+        />
+        
+        <v-list-subheader>JOURNEY DOMAIN</v-list-subheader>
+        <v-list-item
+          to="/journeys"
+          prepend-icon="mdi-view-list"
+          title="List Journeys"
+          data-automation-id="nav-journeys-list-link"
+        />
+        
+        <v-list-subheader>RATING DOMAIN</v-list-subheader>
+        <v-list-item
+          to="/ratings"
+          prepend-icon="mdi-view-list"
+          title="List Ratings"
+          data-automation-id="nav-ratings-list-link"
+        />
+        
+        <v-list-subheader>NOTE DOMAIN</v-list-subheader>
+        <v-list-item
+          to="/notes"
+          prepend-icon="mdi-view-list"
+          title="List Notes"
+          data-automation-id="nav-notes-list-link"
+        />
+        
       </v-list>
 
       <template v-slot:append>
@@ -95,7 +159,7 @@ import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 import { useConfig } from '@/composables/useConfig'
 import { useRoles } from '@/composables/useRoles'
-import { redirectToIdpLogin } from '@{{org.git_org}}/{{info.slug}}_spa_utils'
+import { redirectToIdpLogin } from '@mentor-forge/mentorhub_spa_utils'
 
 const router = useRouter()
 const { isAuthenticated, logout } = useAuth()
