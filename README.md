@@ -13,6 +13,9 @@ This repository contains a Vue 3 single-page application (SPA) for the customer 
 npm run service 
 ```
 
+> [!WARNING]
+> `npm run dev` (Vite dev server) and `npm run service` (packaged container stack) both bind host port **8388**. Do not run them at the same time.
+
 ## Developer Commands
 
 ```sh
@@ -25,7 +28,7 @@ npx cypress install
 ## package code for deployment
 npm run build 
 
-## run dev server, assumes api is running - captures command line
+## run dev server at http://localhost:8388/customer/ (assumes customer_api is running via `npm run api`)
 npm run dev 
 
 ## run unit tests
@@ -43,10 +46,10 @@ npm run cypress
 ## run Cypress E2E tests headlessly
 npm run cypress:run
 
-## de down and start db + api containers
+## start db + api containers
 npm run api 
 
-## de down and start db + api + spa containers and open 
+## start db + api + spa containers and open 
 npm run service 
 
 ## open page in the browser
@@ -55,6 +58,28 @@ npm run open
 ## Build SPA docker container locally (run `mh` first)
 npm run container
 ```
+
+## Route Table
+
+All browser routes are served under the `/customer/` prefix (Vite `base: '/customer/'`):
+
+| Browser URL | Route Path | Component | Description |
+|---|---|---|---|
+| `http://localhost:8388/customer/` | `/` | `CustomerEditPage.vue` | Home page for JWT-scoped customer |
+| `http://localhost:8388/customer/profile/` | `/profile/` | `ProfilePage.vue` | Profile page for signed-in user |
+| `http://localhost:8388/customer/profile/:id` | `/profile/:id` | `ProfilePage.vue` | Profile detail view |
+| `http://localhost:8388/customer/subscriptions/new` | `/subscriptions/new` | `SubscriptionNewPage.vue` | New subscription form |
+| `http://localhost:8388/customer/subscriptions/:id` | `/subscriptions/:id` | `SubscriptionEditPage.vue` | Subscription edit page |
+| `http://localhost:8388/customer/dashboards/new` | `/dashboards/new` | `DashboardNewPage.vue` | New dashboard form |
+| `http://localhost:8388/customer/dashboards/:id` | `/dashboards/:id` | `DashboardEditPage.vue` | Dashboard edit page |
+| `http://localhost:8388/customer/cards/new` | `/cards/new` | `CardNewPage.vue` | New card form |
+| `http://localhost:8388/customer/cards/:id` | `/cards/:id` | `CardEditPage.vue` | Card edit page |
+| `http://localhost:8388/customer/events/new` | `/events/new` | `EventNewPage.vue` | New event form |
+| `http://localhost:8388/customer/events/:id` | `/events/:id` | `EventViewPage.vue` | Event detail view |
+| `http://localhost:8388/customer/journeys/:id` | `/journeys/:id` | `JourneyViewPage.vue` | Journey detail view |
+| `http://localhost:8388/customer/ratings/:id` | `/ratings/:id` | `RatingViewPage.vue` | Rating detail view |
+| `http://localhost:8388/customer/notes/:id` | `/notes/:id` | `NoteViewPage.vue` | Note detail view |
+| `http://localhost:8388/customer/config` | `/config` | `AdminPage.vue` | Admin runtime configuration viewer |
 
 ## Architecture Overview
 
