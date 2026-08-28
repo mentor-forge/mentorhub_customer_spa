@@ -57,7 +57,7 @@ describe('API Client - Event Endpoints', () => {
 
     expect(result).toEqual(mockResponse)
     expect(mockFetch).toHaveBeenCalledWith(
-      '/api/event',
+      '/customer/api/event',
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify(input)

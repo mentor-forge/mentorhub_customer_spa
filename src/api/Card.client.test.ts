@@ -64,7 +64,7 @@ describe('API Client - Card Endpoints', () => {
 
     expect(result).toEqual(mockResponse)
     expect(mockFetch).toHaveBeenCalledWith(
-      '/api/card',
+      '/customer/api/card',
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify(input)
@@ -104,7 +104,7 @@ describe('API Client - Card Endpoints', () => {
 
     expect(result).toEqual(mockCard)
     expect(mockFetch).toHaveBeenCalledWith(
-      '/api/card/507f1f77bcf86cd799439011',
+      '/customer/api/card/507f1f77bcf86cd799439011',
       expect.objectContaining({
         method: 'PATCH',
         body: JSON.stringify(update)

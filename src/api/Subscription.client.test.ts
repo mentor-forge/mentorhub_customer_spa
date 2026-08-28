@@ -64,7 +64,7 @@ describe('API Client - Subscription Endpoints', () => {
 
     expect(result).toEqual(mockResponse)
     expect(mockFetch).toHaveBeenCalledWith(
-      '/api/subscription',
+      '/customer/api/subscription',
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify(input)
@@ -104,7 +104,7 @@ describe('API Client - Subscription Endpoints', () => {
 
     expect(result).toEqual(mockSubscription)
     expect(mockFetch).toHaveBeenCalledWith(
-      '/api/subscription/507f1f77bcf86cd799439011',
+      '/customer/api/subscription/507f1f77bcf86cd799439011',
       expect.objectContaining({
         method: 'PATCH',
         body: JSON.stringify(update)

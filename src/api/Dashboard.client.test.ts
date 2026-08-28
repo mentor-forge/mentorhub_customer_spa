@@ -64,7 +64,7 @@ describe('API Client - Dashboard Endpoints', () => {
 
     expect(result).toEqual(mockResponse)
     expect(mockFetch).toHaveBeenCalledWith(
-      '/api/dashboard',
+      '/customer/api/dashboard',
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify(input)
@@ -104,7 +104,7 @@ describe('API Client - Dashboard Endpoints', () => {
 
     expect(result).toEqual(mockDashboard)
     expect(mockFetch).toHaveBeenCalledWith(
-      '/api/dashboard/507f1f77bcf86cd799439011',
+      '/customer/api/dashboard/507f1f77bcf86cd799439011',
       expect.objectContaining({
         method: 'PATCH',
         body: JSON.stringify(update)

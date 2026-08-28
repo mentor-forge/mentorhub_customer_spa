@@ -30,7 +30,7 @@ describe('API Client - Profile Endpoints', () => {
 
     expect(result).toEqual(mockProfile)
     expect(mockFetch).toHaveBeenCalledWith(
-      '/api/profile/507f1f77bcf86cd799439011',
+      '/customer/api/profile/507f1f77bcf86cd799439011',
       expect.objectContaining({
         method: 'PATCH',
         body: JSON.stringify({ name: 'updated-profile' })
