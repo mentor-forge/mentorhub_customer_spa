@@ -16,113 +16,6 @@
       temporary
     >
       <v-list density="compact" nav>
-        
-        <v-list-subheader>SUBSCRIPTION DOMAIN</v-list-subheader>
-        <v-list-item
-          to="/subscriptions"
-          prepend-icon="mdi-view-list"
-          title="List Subscriptions"
-          data-automation-id="nav-subscriptions-list-link"
-        />
-        <v-list-item
-          to="/subscriptions/new"
-          prepend-icon="mdi-plus"
-          title="New Subscription"
-          data-automation-id="nav-subscriptions-new-link"
-        />
-
-        <v-divider class="my-2" />
-        
-        <v-list-subheader>DASHBOARD DOMAIN</v-list-subheader>
-        <v-list-item
-          to="/dashboards"
-          prepend-icon="mdi-view-list"
-          title="List Dashboards"
-          data-automation-id="nav-dashboards-list-link"
-        />
-        <v-list-item
-          to="/dashboards/new"
-          prepend-icon="mdi-plus"
-          title="New Dashboard"
-          data-automation-id="nav-dashboards-new-link"
-        />
-
-        <v-divider class="my-2" />
-        
-        <v-list-subheader>CARD DOMAIN</v-list-subheader>
-        <v-list-item
-          to="/cards"
-          prepend-icon="mdi-view-list"
-          title="List Cards"
-          data-automation-id="nav-cards-list-link"
-        />
-        <v-list-item
-          to="/cards/new"
-          prepend-icon="mdi-plus"
-          title="New Card"
-          data-automation-id="nav-cards-new-link"
-        />
-
-        <v-divider class="my-2" />
-        
-        
-        <v-list-subheader>EVENT DOMAIN</v-list-subheader>
-        <v-list-item
-          to="/events"
-          prepend-icon="mdi-view-list"
-          title="List Events"
-          data-automation-id="nav-events-list-link"
-        />
-        <v-list-item
-          to="/events/new"
-          prepend-icon="mdi-plus"
-          title="New Event"
-          data-automation-id="nav-events-new-link"
-        />
-
-        <v-divider class="my-2" />
-        
-        
-        <v-list-subheader>PROFILE DOMAIN</v-list-subheader>
-        <v-list-item
-          to="/profiles"
-          prepend-icon="mdi-view-list"
-          title="List Profiles"
-          data-automation-id="nav-profiles-list-link"
-        />
-        
-        <v-list-subheader>CUSTOMER DOMAIN</v-list-subheader>
-        <v-list-item
-          to="/customers"
-          prepend-icon="mdi-view-list"
-          title="List Customers"
-          data-automation-id="nav-customers-list-link"
-        />
-        
-        <v-list-subheader>JOURNEY DOMAIN</v-list-subheader>
-        <v-list-item
-          to="/journeys"
-          prepend-icon="mdi-view-list"
-          title="List Journeys"
-          data-automation-id="nav-journeys-list-link"
-        />
-        
-        <v-list-subheader>RATING DOMAIN</v-list-subheader>
-        <v-list-item
-          to="/ratings"
-          prepend-icon="mdi-view-list"
-          title="List Ratings"
-          data-automation-id="nav-ratings-list-link"
-        />
-        
-        <v-list-subheader>NOTE DOMAIN</v-list-subheader>
-        <v-list-item
-          to="/notes"
-          prepend-icon="mdi-view-list"
-          title="List Notes"
-          data-automation-id="nav-notes-list-link"
-        />
-        
       </v-list>
 
       <template v-slot:append>
@@ -130,7 +23,7 @@
         <v-list density="compact" nav>
           <v-list-item
             v-if="hasAdminRole"
-            to="/admin"
+            to="/config"
             prepend-icon="mdi-cog"
             title="Admin"
             data-automation-id="nav-admin-link"

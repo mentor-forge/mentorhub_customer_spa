@@ -5,18 +5,29 @@ import { redirectToIdpLogin } from '@mentor-forge/mentorhub_spa_utils'
 const router = createRouter({
   history: createWebHistory(),
   routes: [
+    // Home / Customer
     {
       path: '/',
-      redirect: '/subscriptions'
-    },
-    
-    // Control domain: Subscription
-    {
-      path: '/subscriptions',
-      name: 'Subscriptions',
-      component: () => import('@/pages/SubscriptionsListPage.vue'),
+      name: 'CustomerEdit',
+      component: () => import('@/pages/CustomerEditPage.vue'),
       meta: { requiresAuth: true }
     },
+    
+    // Profile
+    {
+      path: '/profile/',
+      name: 'Profile',
+      component: () => import('@/pages/ProfilePage.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/profile/:id',
+      name: 'ProfileDetail',
+      component: () => import('@/pages/ProfilePage.vue'),
+      meta: { requiresAuth: true }
+    },
+
+    // Control domain: Subscription
     {
       path: '/subscriptions/new',
       name: 'SubscriptionNew',
@@ -32,12 +43,6 @@ const router = createRouter({
     
     // Control domain: Dashboard
     {
-      path: '/dashboards',
-      name: 'Dashboards',
-      component: () => import('@/pages/DashboardsListPage.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
       path: '/dashboards/new',
       name: 'DashboardNew',
       component: () => import('@/pages/DashboardNewPage.vue'),
@@ -52,12 +57,6 @@ const router = createRouter({
     
     // Control domain: Card
     {
-      path: '/cards',
-      name: 'Cards',
-      component: () => import('@/pages/CardsListPage.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
       path: '/cards/new',
       name: 'CardNew',
       component: () => import('@/pages/CardNewPage.vue'),
@@ -70,14 +69,7 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     
-    
     // Create domain: Event
-    {
-      path: '/events',
-      name: 'Events',
-      component: () => import('@/pages/EventsListPage.vue'),
-      meta: { requiresAuth: true }
-    },
     {
       path: '/events/new',
       name: 'EventNew',
@@ -91,42 +83,7 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     
-    
-    // Consume domain: Profile
-    {
-      path: '/profiles',
-      name: 'Profiles',
-      component: () => import('@/pages/ProfilesListPage.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/profiles/:id',
-      name: 'ProfileView',
-      component: () => import('@/pages/ProfileViewPage.vue'),
-      meta: { requiresAuth: true }
-    },
-    
-    // Consume domain: Customer
-    {
-      path: '/customers',
-      name: 'Customers',
-      component: () => import('@/pages/CustomersListPage.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/customers/:id',
-      name: 'CustomerView',
-      component: () => import('@/pages/CustomerViewPage.vue'),
-      meta: { requiresAuth: true }
-    },
-    
     // Consume domain: Journey
-    {
-      path: '/journeys',
-      name: 'Journeys',
-      component: () => import('@/pages/JourneysListPage.vue'),
-      meta: { requiresAuth: true }
-    },
     {
       path: '/journeys/:id',
       name: 'JourneyView',
@@ -136,12 +93,6 @@ const router = createRouter({
     
     // Consume domain: Rating
     {
-      path: '/ratings',
-      name: 'Ratings',
-      component: () => import('@/pages/RatingsListPage.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
       path: '/ratings/:id',
       name: 'RatingView',
       component: () => import('@/pages/RatingViewPage.vue'),
@@ -150,21 +101,15 @@ const router = createRouter({
     
     // Consume domain: Note
     {
-      path: '/notes',
-      name: 'Notes',
-      component: () => import('@/pages/NotesListPage.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
       path: '/notes/:id',
       name: 'NoteView',
       component: () => import('@/pages/NoteViewPage.vue'),
       meta: { requiresAuth: true }
     },
     
-    // Admin route
+    // Admin / Config route
     {
-      path: '/admin',
+      path: '/config',
       name: 'Admin',
       component: () => import('@/pages/AdminPage.vue'),
       meta: { requiresAuth: true, requiresRole: 'admin' }
@@ -185,7 +130,7 @@ router.beforeEach((to, _from, next) => {
   const requiredRole = to.meta.requiresRole as string | undefined
   if (requiredRole && !hasStoredRole(requiredRole)) {
     // Redirect to default page if user doesn't have required role
-    next({ name: 'Subscriptions' })
+    next({ name: 'CustomerEdit' })
     return
   }
   

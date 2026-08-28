@@ -1,12 +1,20 @@
 <template>
-  <v-container>
+  <v-container data-automation-id="customer-edit-page">
     <v-row>
       <v-col>
-        <h1 class="text-h4 mb-4">View Customer</h1>
+        <h1 class="text-h4 mb-4">Customer</h1>
       </v-col>
     </v-row>
 
-    <v-row v-if="isLoading">
+    <v-row v-if="!customerId">
+      <v-col cols="12" md="8">
+        <v-alert type="info" variant="tonal">
+          No customer ID found in access token.
+        </v-alert>
+      </v-col>
+    </v-row>
+
+    <v-row v-else-if="isLoading">
       <v-col class="text-center">
         <v-progress-circular indeterminate color="primary" />
       </v-col>
@@ -21,6 +29,7 @@
               label="Name"
               readonly
               variant="outlined"
+              data-automation-id="customer-edit-name-input"
             />
 
             <v-textarea
@@ -30,6 +39,7 @@
               variant="outlined"
               rows="3"
               class="mt-4"
+              data-automation-id="customer-edit-description-input"
             />
 
             <v-text-field
@@ -38,13 +48,8 @@
               readonly
               variant="outlined"
               class="mt-4"
+              data-automation-id="customer-edit-status-input"
             />
-
-            <v-card-actions class="px-0 mt-4">
-              <v-btn @click="router.push('/customers')" variant="text">
-                Back to List
-              </v-btn>
-            </v-card-actions>
           </v-card-text>
         </v-card>
       </v-col>
@@ -58,19 +63,17 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
 import { useQuery } from '@tanstack/vue-query'
 import { useErrorHandler } from '@mentor-forge/mentorhub_spa_utils'
 import { api } from '@/api/client'
+import { getStoredCustomerId } from '@/composables/useAuth'
 
-const routeLocation = useRoute()
-const router = useRouter()
-
-const customerId = computed(() => routeLocation.params.id as string)
+const customerId = computed(() => getStoredCustomerId())
 
 const { data: customer, isLoading, error: queryError } = useQuery({
   queryKey: ['customer', customerId],
-  queryFn: () => api.getCustomer(customerId.value),
+  queryFn: () => (customerId.value ? api.getCustomer(customerId.value) : Promise.reject(new Error('No customer ID'))),
+  enabled: computed(() => Boolean(customerId.value)),
 })
 
 const errorRef = ref<Error | null>(null)

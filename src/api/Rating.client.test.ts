@@ -12,58 +12,6 @@ describe('API Client - Rating Endpoints', () => {
     localStorage.setItem('access_token', 'test-token')
   })
 
-  it('should get all ratings', async () => {
-    const mockRatings = [
-      {
-        _id: '507f1f77bcf86cd799439011',
-        name: 'test-rating',
-        description: 'Test description',
-        status: 'active'
-      }
-    ]
-
-    const mockResponse = {
-      items: mockRatings,
-      limit: 20,
-      has_more: false,
-      next_cursor: null
-    }
-
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      headers: { get: (name: string) => name === 'content-length' ? '100' : null },
-      json: async () => mockResponse
-    })
-
-    const result = await api.getRatings()
-
-    expect(result).toEqual(mockResponse)
-  })
-
-  it('should get ratings with name query', async () => {
-    const mockResponse = {
-      items: [],
-      limit: 20,
-      has_more: false,
-      next_cursor: null
-    }
-
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      headers: { get: (name: string) => name === 'content-length' ? '100' : null },
-      json: async () => mockResponse
-    })
-
-    await api.getRatings({ name: 'test' })
-
-    expect(mockFetch).toHaveBeenCalledWith(
-      '/api/rating?name=test',
-      expect.any(Object)
-    )
-  })
-
   it('should get a single rating', async () => {
     const mockRating = {
       _id: '507f1f77bcf86cd799439011',

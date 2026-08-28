@@ -15,6 +15,7 @@ import type {
   EventInput,
 
   Profile,
+  ProfileUpdate,
 
   Customer,
 
@@ -25,9 +26,7 @@ import type {
   Note,
 
   ConfigResponse,
-  Error,
-  InfiniteScrollParams,
-  InfiniteScrollResponse
+  Error
 } from './types'
 import { redirectToIdpLogin } from '@mentor-forge/mentorhub_spa_utils'
 
@@ -100,22 +99,7 @@ export const api = {
     return request<ConfigResponse>('/config')
   },
 
-  // Control endpoints
-  // 🎯 API methods use InfiniteScrollParams and InfiniteScrollResponse types
-  // Shapes used by spa_utils useInfiniteScroll
-
-  async getSubscriptions(params?: InfiniteScrollParams): Promise<InfiniteScrollResponse<Subscription>> {
-    const queryParams = new URLSearchParams()
-    if (params?.name) queryParams.append('name', params.name)
-    if (params?.after_id) queryParams.append('after_id', params.after_id)
-    if (params?.limit) queryParams.append('limit', String(params.limit))
-    if (params?.sort_by) queryParams.append('sort_by', params.sort_by)
-    if (params?.order) queryParams.append('order', params.order)
-    
-    const query = queryParams.toString()
-    return request<InfiniteScrollResponse<Subscription>>(`/subscription${query ? `?${query}` : ''}`)
-  },
-
+  // Subscription Domain
   async getSubscription(subscriptionId: string): Promise<Subscription> {
     return request<Subscription>(`/subscription/${subscriptionId}`)
   },
@@ -134,19 +118,7 @@ export const api = {
     })
   },
 
-
-  async getDashboards(params?: InfiniteScrollParams): Promise<InfiniteScrollResponse<Dashboard>> {
-    const queryParams = new URLSearchParams()
-    if (params?.name) queryParams.append('name', params.name)
-    if (params?.after_id) queryParams.append('after_id', params.after_id)
-    if (params?.limit) queryParams.append('limit', String(params.limit))
-    if (params?.sort_by) queryParams.append('sort_by', params.sort_by)
-    if (params?.order) queryParams.append('order', params.order)
-    
-    const query = queryParams.toString()
-    return request<InfiniteScrollResponse<Dashboard>>(`/dashboard${query ? `?${query}` : ''}`)
-  },
-
+  // Dashboard Domain
   async getDashboard(dashboardId: string): Promise<Dashboard> {
     return request<Dashboard>(`/dashboard/${dashboardId}`)
   },
@@ -165,19 +137,7 @@ export const api = {
     })
   },
 
-
-  async getCards(params?: InfiniteScrollParams): Promise<InfiniteScrollResponse<Card>> {
-    const queryParams = new URLSearchParams()
-    if (params?.name) queryParams.append('name', params.name)
-    if (params?.after_id) queryParams.append('after_id', params.after_id)
-    if (params?.limit) queryParams.append('limit', String(params.limit))
-    if (params?.sort_by) queryParams.append('sort_by', params.sort_by)
-    if (params?.order) queryParams.append('order', params.order)
-    
-    const query = queryParams.toString()
-    return request<InfiniteScrollResponse<Card>>(`/card${query ? `?${query}` : ''}`)
-  },
-
+  // Card Domain
   async getCard(cardId: string): Promise<Card> {
     return request<Card>(`/card/${cardId}`)
   },
@@ -196,22 +156,7 @@ export const api = {
     })
   },
 
-
-
-  // Create endpoints
-
-  async getEvents(params?: InfiniteScrollParams): Promise<InfiniteScrollResponse<Event>> {
-    const queryParams = new URLSearchParams()
-    if (params?.name) queryParams.append('name', params.name)
-    if (params?.after_id) queryParams.append('after_id', params.after_id)
-    if (params?.limit) queryParams.append('limit', String(params.limit))
-    if (params?.sort_by) queryParams.append('sort_by', params.sort_by)
-    if (params?.order) queryParams.append('order', params.order)
-    
-    const query = queryParams.toString()
-    return request<InfiniteScrollResponse<Event>>(`/event${query ? `?${query}` : ''}`)
-  },
-
+  // Event Domain
   async getEvent(eventId: string): Promise<Event> {
     return request<Event>(`/event/${eventId}`)
   },
@@ -223,95 +168,38 @@ export const api = {
     })
   },
 
-
-
-  // Consume endpoints
-
-  async getProfiles(params?: InfiniteScrollParams): Promise<InfiniteScrollResponse<Profile>> {
-    const queryParams = new URLSearchParams()
-    if (params?.name) queryParams.append('name', params.name)
-    if (params?.after_id) queryParams.append('after_id', params.after_id)
-    if (params?.limit) queryParams.append('limit', String(params.limit))
-    if (params?.sort_by) queryParams.append('sort_by', params.sort_by)
-    if (params?.order) queryParams.append('order', params.order)
-    
-    const query = queryParams.toString()
-    return request<InfiniteScrollResponse<Profile>>(`/profile${query ? `?${query}` : ''}`)
-  },
-
+  // Profile Domain
   async getProfile(profileId: string): Promise<Profile> {
     return request<Profile>(`/profile/${profileId}`)
   },
 
-
-  async getCustomers(params?: InfiniteScrollParams): Promise<InfiniteScrollResponse<Customer>> {
-    const queryParams = new URLSearchParams()
-    if (params?.name) queryParams.append('name', params.name)
-    if (params?.after_id) queryParams.append('after_id', params.after_id)
-    if (params?.limit) queryParams.append('limit', String(params.limit))
-    if (params?.sort_by) queryParams.append('sort_by', params.sort_by)
-    if (params?.order) queryParams.append('order', params.order)
-    
-    const query = queryParams.toString()
-    return request<InfiniteScrollResponse<Customer>>(`/customer${query ? `?${query}` : ''}`)
+  async updateProfile(profileId: string, data: ProfileUpdate): Promise<Profile> {
+    return request<Profile>(`/profile/${profileId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    })
   },
 
+  // Customer Domain
   async getCustomer(customerId: string): Promise<Customer> {
     return request<Customer>(`/customer/${customerId}`)
   },
 
-
-  async getJourneys(params?: InfiniteScrollParams): Promise<InfiniteScrollResponse<Journey>> {
-    const queryParams = new URLSearchParams()
-    if (params?.name) queryParams.append('name', params.name)
-    if (params?.after_id) queryParams.append('after_id', params.after_id)
-    if (params?.limit) queryParams.append('limit', String(params.limit))
-    if (params?.sort_by) queryParams.append('sort_by', params.sort_by)
-    if (params?.order) queryParams.append('order', params.order)
-    
-    const query = queryParams.toString()
-    return request<InfiniteScrollResponse<Journey>>(`/journey${query ? `?${query}` : ''}`)
-  },
-
+  // Journey Domain
   async getJourney(journeyId: string): Promise<Journey> {
     return request<Journey>(`/journey/${journeyId}`)
   },
 
-
-  async getRatings(params?: InfiniteScrollParams): Promise<InfiniteScrollResponse<Rating>> {
-    const queryParams = new URLSearchParams()
-    if (params?.name) queryParams.append('name', params.name)
-    if (params?.after_id) queryParams.append('after_id', params.after_id)
-    if (params?.limit) queryParams.append('limit', String(params.limit))
-    if (params?.sort_by) queryParams.append('sort_by', params.sort_by)
-    if (params?.order) queryParams.append('order', params.order)
-    
-    const query = queryParams.toString()
-    return request<InfiniteScrollResponse<Rating>>(`/rating${query ? `?${query}` : ''}`)
-  },
-
+  // Rating Domain
   async getRating(ratingId: string): Promise<Rating> {
     return request<Rating>(`/rating/${ratingId}`)
   },
 
-
-  async getNotes(params?: InfiniteScrollParams): Promise<InfiniteScrollResponse<Note>> {
-    const queryParams = new URLSearchParams()
-    if (params?.name) queryParams.append('name', params.name)
-    if (params?.after_id) queryParams.append('after_id', params.after_id)
-    if (params?.limit) queryParams.append('limit', String(params.limit))
-    if (params?.sort_by) queryParams.append('sort_by', params.sort_by)
-    if (params?.order) queryParams.append('order', params.order)
-    
-    const query = queryParams.toString()
-    return request<InfiniteScrollResponse<Note>>(`/note${query ? `?${query}` : ''}`)
-  },
-
+  // Note Domain
   async getNote(noteId: string): Promise<Note> {
     return request<Note>(`/note/${noteId}`)
   },
-
-
 }
 
 export { ApiError }
+

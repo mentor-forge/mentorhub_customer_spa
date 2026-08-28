@@ -62,20 +62,22 @@ npm run container
 src/
   api/              # API client layer (types.ts, client.ts)
   components/       # App-specific UI components (admin components)
-  pages/            # Route-level components (List, New, Edit/View pages)
+  pages/            # Route-level components (CustomerEditPage, ProfilePage, New, Edit/View pages)
   composables/      # App-specific composables (useAuth, useConfig, useRoles wrapper)
   stores/           # Pinia stores (UI state only)
   router/           # Vue Router configuration
   plugins/          # Vuetify plugin configuration
 ```
 
-**Note**: This template uses `@mentor-forge/mentorhub_spa_utils` for reusable components, composables, and utilities. See the [mentorhub_spa_utils README](../mentorhub_spa_utils/README.md) for complete documentation on available components (`AutoSaveField`, `AutoSaveSelect`, `ListPageSearch`), composables (`useResourceList`, `useErrorHandler`, `useRoles`), and utilities (`formatDate`, `validationRules`).
+**Page Structure & Journey Boundary**: This Customer SPA hosts detail, new, and edit pages for customer resources, plus `/` (`CustomerEditPage.vue`), `/profile/` (`ProfilePage.vue`), and `/config` (`AdminPage.vue`). Collections and list card dashboards live on the Discovery journey SPA (`/discovery/...`).
+
+**Note**: This SPA uses `@mentor-forge/mentorhub_spa_utils` for reusable components, composables, and utilities. See the [mentorhub_spa_utils README](../mentorhub_spa_utils/README.md) for complete documentation on available components (`AutoSaveField`, `AutoSaveSelect`), composables (`useErrorHandler`, `useRoles`), and utilities (`formatDate`, `validationRules`).
 
 ## Key Implementation Patterns
 
 ### Authentication
 - JWT tokens stored in localStorage (`access_token`, `token_expires_at`)
-- `useAuth()` composable manages authentication state
+- `useAuth()` composable manages authentication state and JWT claim reading (`getStoredCustomerId()`, `getStoredProfileId()`)
 - Sign-in uses IdP / URL hash (`bootstrapAuthFromUrl` from spa_utils); APIs are not used as a login surface
 - Router guards protect routes requiring authentication
 
@@ -87,15 +89,14 @@ src/
 
 ### Data Fetching
 - Uses TanStack Query (Vue Query) for server state management
-- Query keys follow pattern: `['resource', id]` or `['resources']`
+- Query keys follow pattern: `['resource', id]`
 - Mutations invalidate related queries on success
-- Use `useResourceList` composable from `spa_utils` for list pages with search support
-- Example: `useQuery({ queryKey: ['control', id], queryFn: () => api.getControl(id) })`
+- Example: `useQuery({ queryKey: ['subscription', id], queryFn: () => api.getSubscription(id) })`
 
 ### Reusable Components and Composables
-This template uses components and composables from `@mentor-forge/mentorhub_spa_utils`:
-- **Components**: `AutoSaveField`, `AutoSaveSelect`, `ListPageSearch`
-- **Composables**: `useResourceList`, `useErrorHandler`, `useRoles`
+This SPA uses components and composables from `@mentor-forge/mentorhub_spa_utils`:
+- **Components**: `AutoSaveField`, `AutoSaveSelect`
+- **Composables**: `useErrorHandler`, `useRoles`
 - **Utilities**: `formatDate`, `validationRules`
 
 See the [mentorhub_spa_utils README](../mentorhub_spa_utils/README.md) for complete documentation and usage examples.

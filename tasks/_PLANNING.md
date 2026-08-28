@@ -97,12 +97,12 @@ Do **not** reference paths under `mentorhub_mongodb_api`, other domain API repos
 
 ## OpenAPI Specifications
 
-**Definitive** OpenAPI specifications must come from the **running API** not from files in the `mentorhub_mentee_api` repository.
+**Definitive** OpenAPI specifications must come from the **running API** not from files in the `mentorhub_customer_api` repository.
 
 Start the backing API if needed (`npm run api`), then fetch the latest JSON schema with `curl`:
 
 ```bash
-curl -X GET "http://localhost:8389/docs/openapi.yaml"
+curl -X GET "http://localhost:8387/docs/openapi.yaml"
 ```
 
 ## Sample task file

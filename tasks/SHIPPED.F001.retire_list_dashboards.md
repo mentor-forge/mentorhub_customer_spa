@@ -1,6 +1,6 @@
 # F001 – Retire list dashboards, land `/` CustomerEditPage and `/profile/` ProfilePage
 
-**Status**: Pending  
+**Status**: Complete  
 **Type**: Feature  
 **Depends On**: _(none — first task in this wave)_  
 **Description**: Delete the nine list dashboards in this SPA (the only consumers of the `useInfiniteScroll` API that spa_utils **removes** in 1.0.0), along with their routes, Cypress specs, cursor-based API surface, and local drawer rows. Land the final in-app route table in the same task: `/` → new `CustomerEditPage.vue` and `/profile/` → new `ProfilePage.vue`. Stay on `@mentor-forge/mentorhub_spa_utils@0.2.2` here so the build stays green; the **1.0.0** pin is F002 and `PageFrame` is F003.
@@ -58,13 +58,6 @@ Vue paths stay unprefixed; the browser URLs in the left column are what F004/F00
 | `http://<host>:8080/customer/journeys/{id}` | `/journeys/:id` | `JourneyViewPage.vue` |
 | `http://<host>:8080/customer/ratings/{id}` | `/ratings/:id` | `RatingViewPage.vue` |
 | `http://<host>:8080/customer/notes/{id}` | `/notes/:id` | `NoteViewPage.vue` |
-| `http://<host>:8080/customer/config` | `/config` | `AdminPage.vue` (shared spa_utils runtime-config viewer) |
-
-**Removed routes**: `/subscriptions`, `/dashboards`, `/cards`, `/events`, `/profiles`, `/profiles/:id`, `/customers`, `/customers/:id`, `/journeys`, `/ratings`, `/notes`, and `/admin` (the config viewer moves to `/config` so it is not confused with the Admin journey prefix).
-
-`JOURNEY_APP_PATHS` in spa_utils locks `customerEdit` to `{ journey: 'customer', path: '' }` and `profile` to `{ journey: 'customer', path: 'profile/' }`, which is why the home route is the customer edit page and the profile route keeps its trailing slash.
-
-### Customer and profile identity
 
 `CustomerEditPage` and the self view of `ProfilePage` have no `:id` in the URL. Resolve identity in this order and record what the running API actually supports in **Execution Notes**:
 

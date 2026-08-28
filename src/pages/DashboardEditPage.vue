@@ -87,11 +87,11 @@
 
             <v-card-actions class="px-0 mt-4">
               <v-btn 
-                @click="router.push('/dashboards')" 
+                @click="router.push('/')" 
                 variant="text"
                 data-automation-id="dashboard-edit-back-button"
               >
-                Back to List
+                Back to Home
               </v-btn>
             </v-card-actions>
           </v-card-text>

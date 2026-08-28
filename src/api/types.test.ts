@@ -2,16 +2,17 @@ import { describe, it, expect } from 'vitest'
 import type {
   Error,
   Breadcrumb,
-  Control,
-  ControlInput,
-  ControlUpdate,
-  Create,
-  CreateInput,
-  Consume,
-  ConfigResponse,
-  InfiniteScrollParams,
-  InfiniteScrollResponse
+  Subscription,
+  SubscriptionInput,
+  SubscriptionUpdate,
+  Event,
+  EventInput,
+  Customer,
+  Profile,
+  ProfileUpdate,
+  ConfigResponse
 } from './types'
+
 
 describe('API Types', () => {
   describe('Error', () => {
@@ -40,11 +41,11 @@ describe('API Types', () => {
     })
   })
 
-  describe('Control', () => {
-    it('should match Control interface with all fields', () => {
-      const control: Control = {
+  describe('Subscription', () => {
+    it('should match Subscription interface with all fields', () => {
+      const subscription: Subscription = {
         _id: '507f1f77bcf86cd799439011',
-        name: 'test-control',
+        name: 'test-subscription',
         description: 'Test description',
         status: 'active',
         created: {
@@ -61,105 +62,42 @@ describe('API Types', () => {
         }
       }
       
-      expect(control._id).toBe('507f1f77bcf86cd799439011')
-      expect(control.name).toBe('test-control')
-      expect(control.description).toBe('Test description')
-      expect(control.status).toBe('active')
-    })
-
-    it('should match Control interface with optional fields', () => {
-      const control: Control = {
-        _id: '507f1f77bcf86cd799439011',
-        name: 'test-control',
-        created: {
-          from_ip: '192.168.1.1',
-          by_user: 'user-123',
-          at_time: '2024-01-01T00:00:00Z',
-          correlation_id: 'corr-123'
-        },
-        saved: {
-          from_ip: '192.168.1.1',
-          by_user: 'user-123',
-          at_time: '2024-01-01T00:00:00Z',
-          correlation_id: 'corr-123'
-        }
-      }
-      
-      expect(control.name).toBe('test-control')
-      expect(control.description).toBeUndefined()
-      expect(control.status).toBeUndefined()
-    })
-
-    it('should accept archived status', () => {
-      const control: Control = {
-        _id: '507f1f77bcf86cd799439011',
-        name: 'test-control',
-        status: 'archived',
-        created: {
-          from_ip: '192.168.1.1',
-          by_user: 'user-123',
-          at_time: '2024-01-01T00:00:00Z',
-          correlation_id: 'corr-123'
-        },
-        saved: {
-          from_ip: '192.168.1.1',
-          by_user: 'user-123',
-          at_time: '2024-01-01T00:00:00Z',
-          correlation_id: 'corr-123'
-        }
-      }
-      
-      expect(control.status).toBe('archived')
+      expect(subscription._id).toBe('507f1f77bcf86cd799439011')
+      expect(subscription.name).toBe('test-subscription')
+      expect(subscription.description).toBe('Test description')
+      expect(subscription.status).toBe('active')
     })
   })
 
-  describe('ControlInput', () => {
-    it('should match ControlInput interface', () => {
-      const input: ControlInput = {
-        name: 'test-control',
+  describe('SubscriptionInput', () => {
+    it('should match SubscriptionInput interface', () => {
+      const input: SubscriptionInput = {
+        name: 'test-subscription',
         description: 'Test description',
         status: 'active'
       }
       
-      expect(input.name).toBe('test-control')
+      expect(input.name).toBe('test-subscription')
       expect(input.description).toBe('Test description')
       expect(input.status).toBe('active')
     })
+  })
 
-    it('should allow optional fields', () => {
-      const input: ControlInput = {
-        name: 'test-control'
+  describe('SubscriptionUpdate', () => {
+    it('should match SubscriptionUpdate interface with partial fields', () => {
+      const update: SubscriptionUpdate = {
+        name: 'updated-subscription'
       }
       
-      expect(input.name).toBe('test-control')
-      expect(input.description).toBeUndefined()
-      expect(input.status).toBeUndefined()
+      expect(update.name).toBe('updated-subscription')
     })
   })
 
-  describe('ControlUpdate', () => {
-    it('should match ControlUpdate interface with partial fields', () => {
-      const update: ControlUpdate = {
-        name: 'updated-control'
-      }
-      
-      expect(update.name).toBe('updated-control')
-    })
-
-    it('should allow all fields to be optional', () => {
-      const update: ControlUpdate = {}
-      
-      expect(update.name).toBeUndefined()
-      expect(update.description).toBeUndefined()
-      expect(update.status).toBeUndefined()
-    })
-  })
-
-  describe('Create', () => {
-    it('should match Create interface', () => {
-      const create: Create = {
+  describe('Event', () => {
+    it('should match Event interface', () => {
+      const event: Event = {
         _id: '507f1f77bcf86cd799439011',
-        name: 'test-create',
+        name: 'test-event',
         description: 'Test description',
         status: 'active',
         created: {
@@ -170,38 +108,65 @@ describe('API Types', () => {
         }
       }
       
-      expect(create._id).toBe('507f1f77bcf86cd799439011')
-      expect(create.name).toBe('test-create')
-      expect(create.status).toBe('active')
+      expect(event._id).toBe('507f1f77bcf86cd799439011')
+      expect(event.name).toBe('test-event')
+      expect(event.status).toBe('active')
     })
   })
 
-  describe('CreateInput', () => {
-    it('should match CreateInput interface', () => {
-      const input: CreateInput = {
-        name: 'test-create',
+  describe('EventInput', () => {
+    it('should match EventInput interface', () => {
+      const input: EventInput = {
+        name: 'test-event',
         description: 'Test description',
         status: 'active'
       }
       
-      expect(input.name).toBe('test-create')
+      expect(input.name).toBe('test-event')
       expect(input.description).toBe('Test description')
       expect(input.status).toBe('active')
     })
   })
 
-  describe('Consume', () => {
-    it('should match Consume interface', () => {
-      const consume: Consume = {
+  describe('Customer', () => {
+    it('should match Customer interface', () => {
+      const customer: Customer = {
         _id: '507f1f77bcf86cd799439011',
-        name: 'test-consume',
+        name: 'test-customer',
         description: 'Test description',
         status: 'active'
       }
       
-      expect(consume._id).toBe('507f1f77bcf86cd799439011')
-      expect(consume.name).toBe('test-consume')
-      expect(consume.status).toBe('active')
+      expect(customer._id).toBe('507f1f77bcf86cd799439011')
+      expect(customer.name).toBe('test-customer')
+      expect(customer.status).toBe('active')
+    })
+  })
+
+  describe('Profile', () => {
+    it('should match Profile interface', () => {
+      const profile: Profile = {
+        _id: '507f1f77bcf86cd799439011',
+        name: 'test-profile',
+        description: 'Test description',
+        status: 'active'
+      }
+      
+      expect(profile._id).toBe('507f1f77bcf86cd799439011')
+      expect(profile.name).toBe('test-profile')
+      expect(profile.status).toBe('active')
+    })
+  })
+
+  describe('ProfileUpdate', () => {
+    it('should match ProfileUpdate interface', () => {
+      const update: ProfileUpdate = {
+        name: 'updated-profile',
+        description: 'Updated description'
+      }
+      
+      expect(update.name).toBe('updated-profile')
+      expect(update.description).toBe('Updated description')
     })
   })
 
@@ -238,104 +203,5 @@ describe('API Types', () => {
       expect(config.token).toBeUndefined()
     })
   })
-
-  describe('InfiniteScrollParams', () => {
-    it('should match InfiniteScrollParams interface with all fields', () => {
-      const params: InfiniteScrollParams = {
-        name: 'test',
-        after_id: '507f1f77bcf86cd799439011',
-        limit: 20,
-        sort_by: 'name',
-        order: 'asc'
-      }
-      
-      expect(params.name).toBe('test')
-      expect(params.after_id).toBe('507f1f77bcf86cd799439011')
-      expect(params.limit).toBe(20)
-      expect(params.sort_by).toBe('name')
-      expect(params.order).toBe('asc')
-    })
-
-    it('should allow optional fields', () => {
-      const params: InfiniteScrollParams = {}
-      
-      expect(params.name).toBeUndefined()
-      expect(params.after_id).toBeUndefined()
-      expect(params.limit).toBeUndefined()
-      expect(params.sort_by).toBeUndefined()
-      expect(params.order).toBeUndefined()
-    })
-
-    it('should accept desc order', () => {
-      const params: InfiniteScrollParams = {
-        order: 'desc'
-      }
-      
-      expect(params.order).toBe('desc')
-    })
-  })
-
-  describe('InfiniteScrollResponse', () => {
-    it('should match InfiniteScrollResponse interface', () => {
-      const response: InfiniteScrollResponse<Control> = {
-        items: [
-          {
-            _id: '507f1f77bcf86cd799439011',
-            name: 'test-control',
-            created: {
-              from_ip: '192.168.1.1',
-              by_user: 'user-123',
-              at_time: '2024-01-01T00:00:00Z',
-              correlation_id: 'corr-123'
-            },
-            saved: {
-              from_ip: '192.168.1.1',
-              by_user: 'user-123',
-              at_time: '2024-01-01T00:00:00Z',
-              correlation_id: 'corr-123'
-            }
-          }
-        ],
-        limit: 20,
-        has_more: true,
-        next_cursor: '507f1f77bcf86cd799439011'
-      }
-      
-      expect(response.items).toHaveLength(1)
-      expect(response.limit).toBe(20)
-      expect(response.has_more).toBe(true)
-      expect(response.next_cursor).toBe('507f1f77bcf86cd799439011')
-    })
-
-    it('should allow null next_cursor when no more items', () => {
-      const response: InfiniteScrollResponse<Create> = {
-        items: [],
-        limit: 20,
-        has_more: false,
-        next_cursor: null
-      }
-      
-      expect(response.has_more).toBe(false)
-      expect(response.next_cursor).toBeNull()
-    })
-
-    it('should be generic over item type', () => {
-      const controlResponse: InfiniteScrollResponse<Control> = {
-        items: [],
-        limit: 20,
-        has_more: false,
-        next_cursor: null
-      }
-      
-      const createResponse: InfiniteScrollResponse<Create> = {
-        items: [],
-        limit: 20,
-        has_more: false,
-        next_cursor: null
-      }
-      
-      expect(controlResponse.items).toEqual([])
-      expect(createResponse.items).toEqual([])
-    })
-  })
 })
+
