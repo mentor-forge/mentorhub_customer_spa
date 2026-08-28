@@ -95,13 +95,15 @@ src/
 
 ### Reusable Components and Composables
 This SPA uses components and composables from `@mentor-forge/mentorhub_spa_utils`:
+- **Shell**: `PageFrame` (Universal navigation shell with role-gated hamburger drawer and IdP logout; local nav configuration is disallowed)
 - **Components**: `AutoSaveField`, `AutoSaveSelect`
-- **Composables**: `useErrorHandler`, `useRoles`
-- **Utilities**: `formatDate`, `validationRules`
+- **Composables**: `provideEditorConfig`, `useErrorHandler`, `useRoles`, `useAuth`
+- **Utilities**: `formatDate`, `validationRules`, `buildJourneyUrl`
 
 See the [mentorhub_spa_utils README](../mentorhub_spa_utils/README.md) for complete documentation and usage examples.
 
 ### Component Architecture
+- **App Shell**: `PageFrame` wraps `router-view` with standard app bar, hamburger menu, and auth actions.
 - **Pages**: Own routing, data fetching, and mutations. Pass data + callbacks to components.
 - **Components**: App-specific components (admin components). Reusable components come from `spa_utils`.
 - **Composables**: App-specific logic (authentication, config). Reusable composables come from `spa_utils`.

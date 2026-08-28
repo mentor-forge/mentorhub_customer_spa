@@ -1,6 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuth, hasStoredRole } from '@/composables/useAuth'
-import { redirectToIdpLogin } from '@mentor-forge/mentorhub_spa_utils'
+import {
+  buildJourneyUrl,
+  JOURNEY_APP_PATHS,
+  redirectToIdpLogin,
+} from '@mentor-forge/mentorhub_spa_utils'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -123,14 +127,16 @@ router.beforeEach((to, _from, next) => {
   // Check authentication
   if (to.meta.requiresAuth && !isAuthenticated.value) {
     redirectToIdpLogin(window.location.origin + to.fullPath)
+    next(false)
     return
   }
   
   // Check role-based authorization
   const requiredRole = to.meta.requiresRole as string | undefined
   if (requiredRole && !hasStoredRole(requiredRole)) {
-    // Redirect to default page if user doesn't have required role
-    next({ name: 'CustomerEdit' })
+    // Leave SPA for Discovery journey home if user lacks required role
+    window.location.replace(buildJourneyUrl(JOURNEY_APP_PATHS.home.journey, JOURNEY_APP_PATHS.home.path))
+    next(false)
     return
   }
   
