@@ -144,9 +144,13 @@ See the [mentorhub_spa_utils README](../mentorhub_spa_utils/README.md) for compl
 - Coverage report: `npm run test:coverage`
 
 ### E2E Tests
-- Uses Cypress for end-to-end testing
-- Tests cover main user flows: login, CRUD operations for each domain
+- Uses Cypress for end-to-end testing against packaged containers (`npm run service`).
+- Tests visit prefixed paths (`http://localhost:8388/customer/...`) and assert spa_utils PageFrame and customer/profile pages.
+- Specs: `navigation.cy.ts`, `customer.cy.ts`, `profile.cy.ts`.
 - Run tests: `npm run cypress` (interactive) or `npm run cypress:run` (headless)
+
+> [!NOTE]
+> Ensure the container service stack is running via `npm run service` before executing `npm run cypress:run`. `npm run dev` must not be running as both use port 8388.
 
 ## Adding New Features
 
