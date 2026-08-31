@@ -12,55 +12,29 @@ describe('API Client - Profile Endpoints', () => {
     localStorage.setItem('access_token', 'test-token')
   })
 
-  it('should get all profiles', async () => {
-    const mockProfiles = [
-      {
-        _id: '507f1f77bcf86cd799439011',
-        name: 'test-profile',
-        description: 'Test description',
-        status: 'active'
-      }
-    ]
-
-    const mockResponse = {
-      items: mockProfiles,
-      limit: 20,
-      has_more: false,
-      next_cursor: null
+  it('should update a profile', async () => {
+    const mockProfile = {
+      _id: '507f1f77bcf86cd799439011',
+      name: 'updated-profile',
+      description: 'Updated description'
     }
 
     mockFetch.mockResolvedValueOnce({
       ok: true,
       status: 200,
       headers: { get: (name: string) => name === 'content-length' ? '100' : null },
-      json: async () => mockResponse
+      json: async () => mockProfile
     })
 
-    const result = await api.getProfiles()
+    const result = await api.updateProfile('507f1f77bcf86cd799439011', { name: 'updated-profile' })
 
-    expect(result).toEqual(mockResponse)
-  })
-
-  it('should get profiles with name query', async () => {
-    const mockResponse = {
-      items: [],
-      limit: 20,
-      has_more: false,
-      next_cursor: null
-    }
-
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      headers: { get: (name: string) => name === 'content-length' ? '100' : null },
-      json: async () => mockResponse
-    })
-
-    await api.getProfiles({ name: 'test' })
-
+    expect(result).toEqual(mockProfile)
     expect(mockFetch).toHaveBeenCalledWith(
-      '/api/profile?name=test',
-      expect.any(Object)
+      '/customer/api/profile/507f1f77bcf86cd799439011',
+      expect.objectContaining({
+        method: 'PATCH',
+        body: JSON.stringify({ name: 'updated-profile' })
+      })
     )
   })
 

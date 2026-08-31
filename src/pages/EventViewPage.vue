@@ -80,8 +80,8 @@
             </v-row>
 
             <v-card-actions class="px-0 mt-4">
-              <v-btn @click="router.push('/events')" variant="text">
-                Back to List
+              <v-btn @click="router.push('/')" variant="text">
+                Back to Home
               </v-btn>
             </v-card-actions>
           </v-card-text>

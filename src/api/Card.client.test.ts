@@ -13,71 +13,6 @@ describe('API Client - Card Endpoints', () => {
     localStorage.setItem('access_token', 'test-token')
   })
 
-  it('should get all cards', async () => {
-    const mockCards = [
-      {
-        _id: '507f1f77bcf86cd799439011',
-        name: 'test-card',
-        description: 'Test description',
-        status: 'active' as const,
-        created: {
-          from_ip: '127.0.0.1',
-          by_user: 'user1',
-          at_time: '2024-01-01T00:00:00Z',
-          correlation_id: 'corr-123'
-        },
-        saved: {
-          from_ip: '127.0.0.1',
-          by_user: 'user1',
-          at_time: '2024-01-01T00:00:00Z',
-          correlation_id: 'corr-123'
-        }
-      }
-    ]
-
-    const mockResponse = {
-      items: mockCards,
-      limit: 20,
-      has_more: false,
-      next_cursor: null
-    }
-
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      headers: { get: (name: string) => name === 'content-length' ? '100' : null },
-      json: async () => mockResponse
-    })
-
-    const result = await api.getCards()
-
-    expect(result).toEqual(mockResponse)
-    expect(mockFetch).toHaveBeenCalledWith('/api/card', expect.any(Object))
-  })
-
-  it('should get cards with name query', async () => {
-    const mockResponse = {
-      items: [],
-      limit: 20,
-      has_more: false,
-      next_cursor: null
-    }
-
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      headers: { get: (name: string) => name === 'content-length' ? '100' : null },
-      json: async () => mockResponse
-    })
-
-    await api.getCards({ name: 'test' })
-
-    expect(mockFetch).toHaveBeenCalledWith(
-      '/api/card?name=test',
-      expect.any(Object)
-    )
-  })
-
   it('should get a single card', async () => {
     const mockCard = {
       _id: '507f1f77bcf86cd799439011',
@@ -129,7 +64,7 @@ describe('API Client - Card Endpoints', () => {
 
     expect(result).toEqual(mockResponse)
     expect(mockFetch).toHaveBeenCalledWith(
-      '/api/card',
+      '/customer/api/card',
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify(input)
@@ -169,7 +104,7 @@ describe('API Client - Card Endpoints', () => {
 
     expect(result).toEqual(mockCard)
     expect(mockFetch).toHaveBeenCalledWith(
-      '/api/card/507f1f77bcf86cd799439011',
+      '/customer/api/card/507f1f77bcf86cd799439011',
       expect.objectContaining({
         method: 'PATCH',
         body: JSON.stringify(update)
@@ -196,12 +131,12 @@ describe('API Client - Card Endpoints', () => {
       json: async () => ({ error: 'Unauthorized' })
     })
 
-    await expect(api.getCards()).rejects.toThrow('Unauthorized')
+    await expect(api.getCard('507f1f77bcf86cd799439011')).rejects.toThrow('Unauthorized')
   })
 
   it('should handle network errors', async () => {
     mockFetch.mockRejectedValueOnce(new Error('Network error'))
 
-    await expect(api.getCards()).rejects.toThrow('Network error')
+    await expect(api.getCard('507f1f77bcf86cd799439011')).rejects.toThrow('Network error')
   })
 })

@@ -3,8 +3,14 @@ import vue from '@vitejs/plugin-vue'
 import { fileURLToPath } from 'node:url'
 
 export default defineConfig({
+  base: '/customer/',
   plugins: [vue()],
   test: {
+    server: {
+      deps: {
+        inline: ['@mentor-forge/mentorhub_spa_utils'],
+      },
+    },
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./tests/setup.ts'],
@@ -21,8 +27,11 @@ export default defineConfig({
       reporter: ['text', 'json', 'html'],
       exclude: [
         'node_modules/',
+        'cypress/**',
+        'public/**',
         'src/main.ts',
         'src/App.vue',
+        'src/initAuth.ts',
         'src/vite-env.d.ts',
         'src/plugins/**',
         'src/pages/**',

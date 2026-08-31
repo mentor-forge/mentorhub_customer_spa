@@ -1,85 +1,78 @@
+/**
+ * Profile page coverage under `/customer/`.
+ *
+ * Reads use a plain `customer` token (least privilege). Writes use the same role with a
+ * case-aligned `profile_id` claim: spa_utils Cypress defaults mint uppercase ObjectIds
+ * (`A000…`), while `customer_api` compares against Mongo's lowercase `str(ObjectId)`.
+ * An `admin` role would mask that ownership check — do not reintroduce it here.
+ */
 describe('Profile Domain', () => {
-  beforeEach(() => {
-    cy.login()
+  const SEED_PROFILE_ID = 'A00000000000000000000001'
+  /** Lowercase form of the seed id — matches Mongo ObjectId stringification used by the API. */
+  const OWNING_PROFILE_ID = SEED_PROFILE_ID.toLowerCase()
+
+  function loginOwningCustomer() {
+    cy.task<{ token: string; expiresAt: string }>('signCypressJwt', {
+      roles: ['customer'],
+      secret: Cypress.env('JWT_SECRET'),
+      profile_id: OWNING_PROFILE_ID,
+    }).then(({ token, expiresAt }) => {
+      cy.visitPrefixed('/customer/profile/', {
+        onBeforeLoad(win) {
+          win.localStorage.setItem('access_token', token)
+          win.localStorage.setItem('token_expires_at', expiresAt)
+          win.localStorage.setItem('user_roles', JSON.stringify(['customer']))
+        },
+      })
+    })
+  }
+
+  it('should load profile page with profile fields for a customer token', () => {
+    cy.login(['customer'])
+    cy.visitPrefixed('/customer/profile/')
+
+    cy.get('[data-automation-id="profile-view-page"]').should('be.visible')
+    cy.get('[data-automation-id="profile-view-name-input"]').should('be.visible')
+    cy.get('[data-automation-id="profile-view-description-input"]').should('be.visible')
+    cy.get('[data-automation-id="profile-view-status-input"]').should('be.visible')
   })
 
-  it('should display profiles list page', () => {
-    cy.visit('/profiles')
-    cy.get('h1').contains('Profiles').should('be.visible')
-  })
+  it('should update profile description as the owning customer (not admin)', () => {
+    loginOwningCustomer()
 
-  it('should search for profiles using existing test data', () => {
-    cy.visit('/profiles')
-    
-    // Wait for initial load
-    cy.get('table').should('exist')
-    // Wait a bit for data to load
+    const timestamp = Date.now()
+    const updatedDescription = `Updated profile description ${timestamp}`
+
+    cy.get('[data-automation-id="profile-view-description-input"]')
+      .find('textarea')
+      .clear()
+      .type(updatedDescription)
+      .blur()
+
     cy.wait(1000)
-    
-    // Check if table has data, if so get first profile name to search for
-    cy.get('body').then(($body) => {
-      const hasRows = $body.find('table tbody tr').length > 0
-      
-      if (hasRows) {
-        // Get the first profile name from the table to search for
-        cy.get('table tbody tr').first().find('td').first().invoke('text').then((firstItemName) => {
-          const trimmedName = firstItemName.trim()
-          if (trimmedName.length > 0) {
-            const searchTerm = trimmedName.substring(0, Math.min(5, trimmedName.length)) // Use first 5 chars for partial match
-            
-            // Search for profiles using partial name
-            cy.get('[data-automation-id="profile-list-search"]').find('input').type(searchTerm)
-            // Wait for debounce (300ms) plus API call
-            cy.wait(800)
-            
-            // Verify the search results contain the profile (should find at least the one we searched for)
-            cy.get('table tbody').should('contain', trimmedName)
-            
-            // Clear search and verify all profiles are shown again
-            cy.get('[data-automation-id="profile-list-search"]').find('input').clear()
-            cy.wait(800)
-            cy.get('table').should('exist')
-          }
-        })
-      } else {
-        // If no data, just verify search input exists and can be used
-        cy.get('[data-automation-id="profile-list-search"]').find('input').should('exist')
-        cy.get('[data-automation-id="profile-list-search"]').find('input').type('test')
-        cy.wait(800)
-        cy.get('[data-automation-id="profile-list-search"]').find('input').clear()
-      }
-    })
+
+    loginOwningCustomer()
+    cy.get('[data-automation-id="profile-view-description-input"]')
+      .find('textarea')
+      .should('have.value', updatedDescription)
   })
 
-  it('should search for profiles and filter results', () => {
-    cy.visit('/profiles')
-    
-    // Wait for initial load
-    cy.get('table').should('exist')
-    
-    // Count initial rows
-    cy.get('table tbody tr').then(($rows) => {
-      const initialCount = $rows.length
-      
-      // Search for a term that might not exist (should show fewer or no results)
-      cy.get('[data-automation-id="profile-list-search"]').find('input').type('nonexistent-search-term-xyz')
-      // Wait for debounce (300ms) plus API call
-      cy.wait(800)
-      
-      // Verify search was performed (table should still exist, but may have fewer/no results)
-      cy.get('table').should('exist')
-      
-      // Clear search and verify all profiles are shown again
-      cy.get('[data-automation-id="profile-list-search"]').find('input').clear()
-      cy.wait(800)
-      
-      // Should have same or more results after clearing
-      cy.get('table tbody tr').should('have.length.at.least', initialCount)
+  it('should receive API 403 when a customer JWT profile_id does not match the document', () => {
+    // Adversarial: default spa_utils claim casing fails ownership without admin privilege.
+    cy.task<{ token: string }>('signCypressJwt', {
+      roles: ['customer'],
+      secret: Cypress.env('JWT_SECRET'),
+      profile_id: SEED_PROFILE_ID,
+    }).then(({ token }) => {
+      cy.request({
+        method: 'PATCH',
+        url: `/customer/api/profile/${SEED_PROFILE_ID}`,
+        headers: { Authorization: `Bearer ${token}` },
+        body: { description: 'must-not-persist' },
+        failOnStatusCode: false,
+      }).then((response) => {
+        expect(response.status).to.equal(403)
+      })
     })
-  })
-
-  it('should not have a new profile button (read-only)', () => {
-    cy.visit('/profiles')
-    cy.get('button').contains('New Profile').should('not.exist')
   })
 })

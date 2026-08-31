@@ -103,6 +103,12 @@ export interface Profile {
   status?: string
 }
 
+export interface ProfileUpdate {
+  name?: string
+  description?: string
+  status?: string
+}
+
 // Customer Domain
 export interface Customer {
   _id: string
@@ -146,18 +152,3 @@ export interface ConfigResponse {
   }
 }
 
-// Infinite Scroll
-export interface InfiniteScrollParams {
-  name?: string
-  after_id?: string
-  limit?: number
-  sort_by?: string
-  order?: 'asc' | 'desc'
-}
-
-export interface InfiniteScrollResponse<T> {
-  items: T[]
-  limit: number
-  has_more: boolean
-  next_cursor: string | null
-}

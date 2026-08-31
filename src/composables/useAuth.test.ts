@@ -1,96 +1,67 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
-describe('useAuth', () => {
+describe('JWT claim readers (Customer-local; harvest candidate)', () => {
+  function makeJwt(payload: Record<string, unknown>): string {
+    const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
+    const body = btoa(JSON.stringify(payload))
+    return `${header}.${body}.signature`
+  }
+
   beforeEach(() => {
     localStorage.clear()
     vi.resetModules()
   })
 
-  describe('isAuthenticated', () => {
-    it('should return false when no token is stored', async () => {
-      const { useAuth } = await import('./useAuth')
-      const { isAuthenticated } = useAuth()
-      expect(isAuthenticated.value).toBe(false)
+  it('should return undefined when no access token stored', async () => {
+    const { getStoredClaim, getStoredCustomerId, getStoredProfileId } = await import('./useAuth')
+    expect(getStoredClaim('customer_id')).toBeUndefined()
+    expect(getStoredCustomerId()).toBeUndefined()
+    expect(getStoredProfileId()).toBeUndefined()
+  })
+
+  it('should return undefined when token is malformed', async () => {
+    localStorage.setItem('access_token', 'invalid-token')
+    const { getStoredClaim, getStoredCustomerId, getStoredProfileId } = await import('./useAuth')
+    expect(getStoredClaim('customer_id')).toBeUndefined()
+    expect(getStoredCustomerId()).toBeUndefined()
+    expect(getStoredProfileId()).toBeUndefined()
+  })
+
+  it('should read standard customer_id and profile_id claims', async () => {
+    const token = makeJwt({ customer_id: 'cust-123', profile_id: 'prof-456' })
+    localStorage.setItem('access_token', token)
+    const { getStoredClaim, getStoredCustomerId, getStoredProfileId } = await import('./useAuth')
+    expect(getStoredClaim('customer_id')).toBe('cust-123')
+    expect(getStoredCustomerId()).toBe('cust-123')
+    expect(getStoredProfileId()).toBe('prof-456')
+  })
+
+  it('should read custom: prefixed claims as fallback', async () => {
+    const token = makeJwt({
+      'custom:customer_id': 'cust-custom-123',
+      'custom:profile_id': 'prof-custom-456',
     })
-
-    it('should return false when token is expired', async () => {
-      const pastDate = new Date(Date.now() - 1000).toISOString()
-      localStorage.setItem('access_token', 'test-token')
-      localStorage.setItem('token_expires_at', pastDate)
-      const { useAuth } = await import('./useAuth')
-      const { isAuthenticated } = useAuth()
-      expect(isAuthenticated.value).toBe(false)
-    })
-
-    it('should return true when token is valid and not expired', async () => {
-      const futureDate = new Date(Date.now() + 100000).toISOString()
-      localStorage.setItem('access_token', 'test-token')
-      localStorage.setItem('token_expires_at', futureDate)
-      localStorage.setItem('user_roles', JSON.stringify(['developer']))
-      const { useAuth } = await import('./useAuth')
-      const { isAuthenticated, roles } = useAuth()
-      expect(isAuthenticated.value).toBe(true)
-      expect(roles.value).toEqual(['developer'])
-    })
+    localStorage.setItem('access_token', token)
+    const { getStoredClaim, getStoredCustomerId, getStoredProfileId } = await import('./useAuth')
+    expect(getStoredClaim('customer_id')).toBe('cust-custom-123')
+    expect(getStoredCustomerId()).toBe('cust-custom-123')
+    expect(getStoredProfileId()).toBe('prof-custom-456')
   })
 
-  describe('logout', () => {
-    it('should clear token and auth state', async () => {
-      localStorage.setItem('access_token', 'test-token')
-      localStorage.setItem('token_expires_at', '2026-12-31T23:59:59Z')
-      localStorage.setItem('user_roles', JSON.stringify(['admin']))
-
-      const { useAuth } = await import('./useAuth')
-      const { logout, isAuthenticated } = useAuth()
-      logout()
-
-      expect(localStorage.getItem('access_token')).toBeNull()
-      expect(localStorage.getItem('token_expires_at')).toBeNull()
-      expect(localStorage.getItem('user_roles')).toBeNull()
-      expect(isAuthenticated.value).toBe(false)
-    })
-  })
-})
-
-describe('getStoredRoles', () => {
-  beforeEach(() => {
-    localStorage.clear()
-    vi.resetModules()
+  it('should treat blank customer_id and profile_id as missing', async () => {
+    const token = makeJwt({ customer_id: '   ', profile_id: '' })
+    localStorage.setItem('access_token', token)
+    const { getStoredCustomerId, getStoredProfileId } = await import('./useAuth')
+    expect(getStoredCustomerId()).toBeUndefined()
+    expect(getStoredProfileId()).toBeUndefined()
   })
 
-  it('should return empty array when no roles stored', async () => {
-    const { getStoredRoles } = await import('./useAuth')
-    expect(getStoredRoles()).toEqual([])
-  })
-
-  it('should return stored roles', async () => {
-    localStorage.setItem('user_roles', JSON.stringify(['admin', 'user']))
-    const { getStoredRoles } = await import('./useAuth')
-    expect(getStoredRoles()).toEqual(['admin', 'user'])
-  })
-})
-
-describe('hasStoredRole', () => {
-  beforeEach(() => {
-    localStorage.clear()
-    vi.resetModules()
-  })
-
-  it('should return true when user has role', async () => {
-    localStorage.setItem('user_roles', JSON.stringify(['admin', 'user']))
-    const { hasStoredRole } = await import('./useAuth')
-    expect(hasStoredRole('admin')).toBe(true)
-    expect(hasStoredRole('user')).toBe(true)
-  })
-
-  it('should return false when user does not have role', async () => {
-    localStorage.setItem('user_roles', JSON.stringify(['user']))
-    const { hasStoredRole } = await import('./useAuth')
-    expect(hasStoredRole('admin')).toBe(false)
-  })
-
-  it('should return false when no roles stored', async () => {
-    const { hasStoredRole } = await import('./useAuth')
-    expect(hasStoredRole('admin')).toBe(false)
+  it('re-exports spa_utils auth helpers without a competing local auth store', async () => {
+    const local = await import('./useAuth')
+    const shared = await import('@mentor-forge/mentorhub_spa_utils')
+    expect(local.useAuth).toBe(shared.useAuth)
+    expect(local.syncAuthFromStorage).toBe(shared.syncAuthFromStorage)
+    expect(local.getStoredRoles).toBe(shared.getStoredRoles)
+    expect(local.hasStoredRole).toBe(shared.hasStoredRole)
   })
 })
