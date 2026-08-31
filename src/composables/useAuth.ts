@@ -1,52 +1,17 @@
-import { ref, computed } from 'vue'
-
-const accessToken = ref<string | null>(null)
-const tokenExpiresAt = ref<string | null>(null)
-const roles = ref<string[]>([])
-
-export function syncAuthFromStorage(): void {
-  accessToken.value = localStorage.getItem('access_token')
-  tokenExpiresAt.value = localStorage.getItem('token_expires_at')
-  const storedRoles = localStorage.getItem('user_roles')
-  roles.value = storedRoles ? JSON.parse(storedRoles) : []
-}
-
-syncAuthFromStorage()
-
-export function useAuth() {
-  syncAuthFromStorage()
-  const isAuthenticated = computed(() => {
-    if (!accessToken.value || !tokenExpiresAt.value) {
-      return false
-    }
-    const expiresAt = new Date(tokenExpiresAt.value)
-    return expiresAt > new Date()
-  })
-
-  function logout() {
-    accessToken.value = null
-    tokenExpiresAt.value = null
-    roles.value = []
-    localStorage.removeItem('access_token')
-    localStorage.removeItem('token_expires_at')
-    localStorage.removeItem('user_roles')
-  }
-
-  return {
-    isAuthenticated,
-    roles: computed(() => roles.value),
-    logout,
-  }
-}
-
-export function getStoredRoles(): string[] {
-  const stored = localStorage.getItem('user_roles')
-  return stored ? JSON.parse(stored) : []
-}
-
-export function hasStoredRole(role: string): boolean {
-  return getStoredRoles().includes(role)
-}
+/**
+ * Core auth state lives in spa_utils. This module re-exports that contract and adds
+ * Customer-journey claim readers used by CustomerEditPage / ProfilePage.
+ *
+ * `getStoredClaim` / `getStoredCustomerId` / `getStoredProfileId` are local until a second
+ * journey SPA needs them — then harvest into spa_utils (spa_utils already decodes JWT for
+ * PageFrame customer_name display, but does not yet expose generic claim helpers).
+ */
+export {
+  useAuth,
+  syncAuthFromStorage,
+  getStoredRoles,
+  hasStoredRole,
+} from '@mentor-forge/mentorhub_spa_utils'
 
 function decodeJwtPayload(token: string): Record<string, unknown> | null {
   const parts = token.split('.')
@@ -82,4 +47,3 @@ export function getStoredProfileId(): string | undefined {
   const claim = getStoredClaim('profile_id')
   return typeof claim === 'string' && claim.trim() ? claim.trim() : undefined
 }
-

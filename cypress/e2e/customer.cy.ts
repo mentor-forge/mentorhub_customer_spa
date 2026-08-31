@@ -4,7 +4,7 @@ describe('Customer Domain', () => {
   })
 
   it('should load customer edit home page with customer fields', () => {
-    cy.visit('/customer/')
+    cy.visitPrefixed('/customer/')
 
     cy.get('[data-automation-id="customer-edit-page"]').should('be.visible')
     cy.get('[data-automation-id="customer-edit-name-input"]')
