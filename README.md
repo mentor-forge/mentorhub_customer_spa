@@ -137,7 +137,7 @@ src/
 
 ### Reusable Components and Composables
 This SPA uses components and composables from `@mentor-forge/mentorhub_spa_utils@1.0.2`:
-- **Shell**: `PageFrame` (Universal navigation shell with role-gated hamburger drawer and IdP logout; local nav configuration is disallowed). The **1.0.2** catalog is compiled into spa_utils: **Home**, **Resources**, and **Paths** for any authenticated user (or when roles are empty/missing); **Plans** for `mentor`; **Notifications**, **Events**, and **Settings** for `admin` only. **Settings** lands on this SPA's `/config` via `hostingConfigHref()`. Products, Customer, and Customer Members are **not** hamburger rows — collection entry lives on Discovery cards.
+- **Shell**: `PageFrame` (universal navigation shell; local nav configuration is disallowed). Catalog rows and role gates are compiled into spa_utils. **Settings** lands on this SPA's `/config` via `hostingConfigHref()`.
 - **Components**: Prefer `DataCard` + typed editors; `AutoSaveField` / `AutoSaveSelect` remain for legacy pages
 - **Composables**: `provideEditorConfig`, `useErrorHandler`, `useRoles`, `useAuth`
 - **Utilities**: `formatDate`, `validationRules`, `buildJourneyUrl`
@@ -173,7 +173,7 @@ See the [mentorhub_spa_utils README](../mentorhub_spa_utils/README.md) for compl
 - Uses Cypress against the packaged SPA on `http://localhost:8388` (`npm run service`). Do not point Cypress at `:8080`
 - Entry and visits are prefixed: `/customer/`, `/customer/profile/`, …
 - Prefer `cy.visitPrefixed(...)` from `cypress/support/commands.ts` over raw `cy.visit` for in-app routes — it asserts `PerformanceNavigationTiming` so a Vue Router rewrite cannot mask an un-prefixed document fetch
-- Specs: `navigation.cy.ts` (PageFrame chrome; customer vs admin drawer catalogs), `customer.cy.ts`, `profile.cy.ts` (customer read; owning-customer write; mismatched `profile_id` → API 403), `deployment.cy.ts` (redirects, history fallback, cache headers, runtime-config, authenticated and unauthenticated `/customer/api` proxy)
+- Specs: `navigation.cy.ts` (PageFrame chrome, this SPA’s `/customer/config` Settings host and admin gate), `customer.cy.ts`, `profile.cy.ts` (customer read; owning-customer write; mismatched `profile_id` → API 403), `deployment.cy.ts` (redirects, history fallback, cache headers, runtime-config, authenticated and unauthenticated `/customer/api` proxy). Hamburger catalog role gates are tested in spa_utils, not here.
 - UI role gating is UX evidence only — API authorization lives in `customer_api`. Do not seed `admin` for profile writes; that masks ownership checks
 - Run tests: `npm run cypress` (interactive) or `npm run cypress:run` (headless)
 
@@ -198,12 +198,12 @@ When adding a new resource or feature:
 
 All interactive elements in this SPA include `data-automation-id` attributes following the `{domain}-{page}-{element}` naming convention.
 
-Cypress targets spa_utils `PageFrame` ids for chrome, not local ones:
+Cypress targets spa_utils `PageFrame` ids for chrome, not local ones. Hamburger catalog
+role gates and collection hrefs are tested in spa_utils — this SPA only asserts host chrome
+and routes:
 
-- Always present for authenticated users: `nav-drawer-toggle`, `page-frame-title`, `nav-profile-link`, `nav-home-link`, `nav-events-link`, `nav-logout-link`
-- Admin-only: `nav-notifications-link`, `nav-settings-link`
-- Settings (`nav-settings-link`) stays on this SPA's hosting origin at `/customer/config`; Home, Events, Notifications, and Profile use welcome / ALB journey URLs.
-- Removed from the hamburger catalog in `spa_utils` 1.0.1: `nav-products-link`, `nav-customer-link`, `nav-customer-members-link`
+- Always present for authenticated users: `nav-drawer-toggle`, `page-frame-title`, `nav-profile-link`
+- This SPA hosts Settings at `/customer/config` (`nav-settings-link`, admin-only)
 
 Do not define host `nav-*` ids in this SPA.
 
