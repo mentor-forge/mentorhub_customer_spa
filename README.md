@@ -122,7 +122,7 @@ src/
 
 **Page Structure & Journey Boundary**: This Customer SPA hosts detail, new, and edit pages for customer resources, plus `/` (`CustomerEditPage.vue`), `/profile/` (`ProfilePage.vue`), and `/config` (`AdminPage.vue`). Collections and list card dashboards live on the Discovery journey SPA (`/discovery/...`).
 
-**Note**: This SPA uses `@mentor-forge/mentorhub_spa_utils@1.0.1` for reusable components, composables, and utilities. See the [mentorhub_spa_utils README](../mentorhub_spa_utils/README.md) for complete documentation.
+**Note**: This SPA uses `@mentor-forge/mentorhub_spa_utils@1.0.2` for reusable components, composables, and utilities. See the [mentorhub_spa_utils README](../mentorhub_spa_utils/README.md) for complete documentation.
 
 ## Key Implementation Patterns
 
@@ -147,8 +147,8 @@ src/
 - Example: `useQuery({ queryKey: ['subscription', id], queryFn: () => api.getSubscription(id) })`
 
 ### Reusable Components and Composables
-This SPA uses components and composables from `@mentor-forge/mentorhub_spa_utils@1.0.1`:
-- **Shell**: `PageFrame` (Universal navigation shell with role-gated hamburger drawer and IdP logout; local nav configuration is disallowed). The **1.0.1** catalog is compiled into spa_utils: **Home** and **Events** for any authenticated user (or when roles are empty/missing); **Resources**, **Paths**, and **Plans** for `mentor`; **Notifications** and **Settings** for `admin` only. **Settings** lands on this SPA's `/config` via `hostingConfigHref()`. Products, Customer, and Customer Members are **not** hamburger rows — collection entry lives on Discovery cards.
+This SPA uses components and composables from `@mentor-forge/mentorhub_spa_utils@1.0.2`:
+- **Shell**: `PageFrame` (Universal navigation shell with role-gated hamburger drawer and IdP logout; local nav configuration is disallowed). The **1.0.2** catalog is compiled into spa_utils: **Home**, **Resources**, and **Paths** for any authenticated user (or when roles are empty/missing); **Plans** for `mentor`; **Notifications**, **Events**, and **Settings** for `admin` only. **Settings** lands on this SPA's `/config` via `hostingConfigHref()`. Products, Customer, and Customer Members are **not** hamburger rows — collection entry lives on Discovery cards.
 - **Components**: Prefer `DataCard` + typed editors; `AutoSaveField` / `AutoSaveSelect` remain for legacy pages
 - **Composables**: `provideEditorConfig`, `useErrorHandler`, `useRoles`, `useAuth`
 - **Utilities**: `formatDate`, `validationRules`, `buildJourneyUrl`
