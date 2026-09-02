@@ -50,7 +50,7 @@ Vue route `path` strings stay unprefixed. Vite `base: '/customer/'` prefixes the
 | `http://localhost:8388/customer/journeys/:id` | `/journeys/:id` | `JourneyViewPage.vue` |
 | `http://localhost:8388/customer/ratings/:id` | `/ratings/:id` | `RatingViewPage.vue` |
 | `http://localhost:8388/customer/notes/:id` | `/notes/:id` | `NoteViewPage.vue` |
-| `http://localhost:8388/customer/config` | `/config` | `AdminPage.vue` (`admin` role required) |
+| `http://localhost:8388/customer/config` | `/config` | `AdminPage.vue` (Settings host: Token / Config Items / Versions / Enumerators; `admin` role required). Hamburger Settings stays on this origin via `hostingConfigHref()` (no `:8080` rewrite). |
 
 ## Developer Commands
 

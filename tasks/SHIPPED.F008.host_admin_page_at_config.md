@@ -1,6 +1,6 @@
 # F008 – Host packaged `AdminPage` at `/customer/config`
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: `F007_pin_spa_utils_1_0_1`  
 **Description**: Keep Vue `path: '/config'` under the existing journey `base` so Settings (`hostingConfigHref()`) lands on **this** SPA at `/customer/config`. Reuse the existing packaged `AdminPage` wrapper. Gate the route with the **admin** role; non-admins redirect away. Keep existing detail/edit pages. Do not pass nav config into `PageFrame`.
@@ -72,4 +72,28 @@ Do not add Events or list pages. Do not pass disallowed `PageFrame` props. Do no
 
 ## Execution Notes
 
-_Reserved for the task execution agent._
+### Plan
+
+- Verify `/config` route, `AdminPage.vue` wrapper, and `PageFrame` props against task goals.
+- Update README In-App Route Table to name `/customer/config` as the Settings host.
+- Optionally add colocated router unit tests for admin/non-admin `/config` gate.
+
+### Results
+
+- **Router (`src/router/index.ts`)**: No change. `/config` already loads `AdminPage.vue` with `requiresAuth: true` and `requiresRole: 'admin'`; non-admins redirect via `buildJourneyUrl(JOURNEY_APP_PATHS.home…)` + `window.location.replace`. No `/admin` route or alias.
+- **AdminPage (`src/pages/AdminPage.vue`)**: No change. Already wraps packaged `{ AdminPage }` from `@mentor-forge/mentorhub_spa_utils@1.0.1` and feeds `GET /customer/api/config` via `api.getConfig()`.
+- **App.vue / PageFrame**: No change. Only `page-title="Customer"` — no `navItems`, ALB URLs, or role tables passed.
+- **README.md**: Updated In-App Route Table row for `/customer/config` — Settings host (Token / Config Items / Versions / Enumerators); hamburger Settings stays on hosting origin via `hostingConfigHref()` (no `:8080` rewrite).
+- **Router test (`src/router/index.test.ts`)**: Added 3 tests — resolve `/config` to admin-gated Admin route; admin stays on `/config`; authenticated non-admin redirected to Discovery via `buildJourneyUrl('discovery', '')`. No `/admin` alias test (route retired in F001).
+
+### Test results (repo root)
+
+| Command | Result |
+|---------|--------|
+| `npm run test` | 15 files, **60 passed** (57 prior + 3 router) |
+| `npm run test:coverage` | **60 passed**; thresholds met (`api/**` 97.69% lines; `composables/**` 96.32% lines) |
+| `npm run build` | **vue-tsc clean**; Vite build succeeded |
+
+### Blockers
+
+None.
