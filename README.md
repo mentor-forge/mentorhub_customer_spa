@@ -39,18 +39,7 @@ Vue route `path` strings stay unprefixed. Vite `base: '/customer/'` prefixes the
 | `http://localhost:8388/customer/` | `/` | `CustomerEditPage.vue` (JWT-scoped customer) |
 | `http://localhost:8388/customer/profile/` | `/profile/` | `ProfilePage.vue` (signed-in profile) |
 | `http://localhost:8388/customer/profile/:id` | `/profile/:id` | `ProfilePage.vue` |
-| `http://localhost:8388/customer/subscriptions/new` | `/subscriptions/new` | `SubscriptionNewPage.vue` |
-| `http://localhost:8388/customer/subscriptions/:id` | `/subscriptions/:id` | `SubscriptionEditPage.vue` |
-| `http://localhost:8388/customer/dashboards/new` | `/dashboards/new` | `DashboardNewPage.vue` |
-| `http://localhost:8388/customer/dashboards/:id` | `/dashboards/:id` | `DashboardEditPage.vue` |
-| `http://localhost:8388/customer/cards/new` | `/cards/new` | `CardNewPage.vue` |
-| `http://localhost:8388/customer/cards/:id` | `/cards/:id` | `CardEditPage.vue` |
-| `http://localhost:8388/customer/events/new` | `/events/new` | `EventNewPage.vue` |
-| `http://localhost:8388/customer/events/:id` | `/events/:id` | `EventViewPage.vue` |
-| `http://localhost:8388/customer/journeys/:id` | `/journeys/:id` | `JourneyViewPage.vue` |
-| `http://localhost:8388/customer/ratings/:id` | `/ratings/:id` | `RatingViewPage.vue` |
-| `http://localhost:8388/customer/notes/:id` | `/notes/:id` | `NoteViewPage.vue` |
-| `http://localhost:8388/customer/config` | `/config` | `AdminPage.vue` (`admin` role required) |
+| `http://localhost:8388/customer/config` | `/config` | `AdminPage.vue` (Settings host: Token / Config Items / Versions / Enumerators; `admin` role required). Hamburger Settings stays on this origin via `hostingConfigHref()` (no `:8080` rewrite). |
 
 ## Developer Commands
 
@@ -113,16 +102,16 @@ npm run container
 src/
   api/              # API client layer (types.ts, client.ts)
   components/       # App-specific UI components (admin components)
-  pages/            # Route-level components (CustomerEditPage, ProfilePage, New, Edit/View pages)
+  pages/            # Route-level components (CustomerEditPage, ProfilePage, AdminPage)
   composables/      # App-specific composables (useConfig, useRoles wrapper; claim helpers; auth re-export)
   stores/           # Pinia stores (UI state only)
   router/           # Vue Router configuration
   plugins/          # Vuetify plugin configuration
 ```
 
-**Page Structure & Journey Boundary**: This Customer SPA hosts detail, new, and edit pages for customer resources, plus `/` (`CustomerEditPage.vue`), `/profile/` (`ProfilePage.vue`), and `/config` (`AdminPage.vue`). Collections and list card dashboards live on the Discovery journey SPA (`/discovery/...`).
+**Page Structure & Journey Boundary**: This Customer SPA hosts `/` (`CustomerEditPage.vue`), `/profile/` (`ProfilePage.vue`), and `/config` (`AdminPage.vue`). Event create/get remain on the API client for other journeys; there is no Event page here. Collections and list card dashboards live on the Discovery journey SPA (`/discovery/...`).
 
-**Note**: This SPA uses `@mentor-forge/mentorhub_spa_utils@1.0.0` for reusable components, composables, and utilities. See the [mentorhub_spa_utils README](../mentorhub_spa_utils/README.md) for complete documentation.
+**Note**: This SPA uses `@mentor-forge/mentorhub_spa_utils@1.0.2` for reusable components, composables, and utilities. See the [mentorhub_spa_utils README](../mentorhub_spa_utils/README.md) for complete documentation.
 
 ## Key Implementation Patterns
 
@@ -144,11 +133,11 @@ src/
 - Uses TanStack Query (Vue Query) for server state management
 - Query keys follow pattern: `['resource', id]`
 - Mutations invalidate related queries on success
-- Example: `useQuery({ queryKey: ['subscription', id], queryFn: () => api.getSubscription(id) })`
+- Example: `useQuery({ queryKey: ['profile', id], queryFn: () => api.getProfile(id) })`
 
 ### Reusable Components and Composables
-This SPA uses components and composables from `@mentor-forge/mentorhub_spa_utils@1.0.0`:
-- **Shell**: `PageFrame` (Universal navigation shell with role-gated hamburger drawer and IdP logout; local nav configuration is disallowed)
+This SPA uses components and composables from `@mentor-forge/mentorhub_spa_utils@1.0.2`:
+- **Shell**: `PageFrame` (universal navigation shell; local nav configuration is disallowed). Catalog rows and role gates are compiled into spa_utils. **Settings** lands on this SPA's `/config` via `hostingConfigHref()`.
 - **Components**: Prefer `DataCard` + typed editors; `AutoSaveField` / `AutoSaveSelect` remain for legacy pages
 - **Composables**: `provideEditorConfig`, `useErrorHandler`, `useRoles`, `useAuth`
 - **Utilities**: `formatDate`, `validationRules`, `buildJourneyUrl`
@@ -184,7 +173,7 @@ See the [mentorhub_spa_utils README](../mentorhub_spa_utils/README.md) for compl
 - Uses Cypress against the packaged SPA on `http://localhost:8388` (`npm run service`). Do not point Cypress at `:8080`
 - Entry and visits are prefixed: `/customer/`, `/customer/profile/`, …
 - Prefer `cy.visitPrefixed(...)` from `cypress/support/commands.ts` over raw `cy.visit` for in-app routes — it asserts `PerformanceNavigationTiming` so a Vue Router rewrite cannot mask an un-prefixed document fetch
-- Specs: `navigation.cy.ts` (PageFrame chrome; customer vs admin drawer catalogs), `customer.cy.ts`, `profile.cy.ts` (customer read; owning-customer write; mismatched `profile_id` → API 403), `deployment.cy.ts` (redirects, history fallback, cache headers, runtime-config, authenticated and unauthenticated `/customer/api` proxy)
+- Specs: `navigation.cy.ts` (PageFrame chrome, this SPA’s `/customer/config` Settings host and admin gate), `customer.cy.ts`, `profile.cy.ts` (customer read; owning-customer write; mismatched `profile_id` → API 403), `deployment.cy.ts` (redirects, history fallback, cache headers, runtime-config, authenticated and unauthenticated `/customer/api` proxy). Hamburger catalog role gates are tested in spa_utils, not here.
 - UI role gating is UX evidence only — API authorization lives in `customer_api`. Do not seed `admin` for profile writes; that masks ownership checks
 - Run tests: `npm run cypress` (interactive) or `npm run cypress:run` (headless)
 
@@ -209,10 +198,12 @@ When adding a new resource or feature:
 
 All interactive elements in this SPA include `data-automation-id` attributes following the `{domain}-{page}-{element}` naming convention.
 
-Cypress targets spa_utils `PageFrame` ids for chrome, not local ones:
+Cypress targets spa_utils `PageFrame` ids for chrome, not local ones. Hamburger catalog
+role gates and collection hrefs are tested in spa_utils — this SPA only asserts host chrome
+and routes:
 
-- Always present: `nav-drawer-toggle`, `page-frame-title`, `nav-profile-link`, `nav-home-link`, `nav-notifications-link`, `nav-logout-link`
-- Role-gated (token must carry the role): `nav-customer-link`, `nav-customer-members-link`, `nav-products-link`, `nav-settings-link`, …
+- Always present for authenticated users: `nav-drawer-toggle`, `page-frame-title`, `nav-profile-link`
+- This SPA hosts Settings at `/customer/config` (`nav-settings-link`, admin-only)
 
 Do not define host `nav-*` ids in this SPA.
 

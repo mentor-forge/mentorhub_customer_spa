@@ -11,74 +11,6 @@ export interface Breadcrumb {
   correlation_id: string
 }
 
-
-// Subscription Domain
-export interface Subscription {
-  _id: string
-  name: string
-  description?: string
-  status?: 'active' | 'archived'
-  created: Breadcrumb
-  saved: Breadcrumb
-}
-
-export interface SubscriptionInput {
-  name: string
-  description?: string
-  status?: 'active' | 'archived'
-}
-
-export interface SubscriptionUpdate {
-  name?: string
-  description?: string
-  status?: 'active' | 'archived'
-}
-
-// Dashboard Domain
-export interface Dashboard {
-  _id: string
-  name: string
-  description?: string
-  status?: 'active' | 'archived'
-  created: Breadcrumb
-  saved: Breadcrumb
-}
-
-export interface DashboardInput {
-  name: string
-  description?: string
-  status?: 'active' | 'archived'
-}
-
-export interface DashboardUpdate {
-  name?: string
-  description?: string
-  status?: 'active' | 'archived'
-}
-
-// Card Domain
-export interface Card {
-  _id: string
-  name: string
-  description?: string
-  status?: 'active' | 'archived'
-  created: Breadcrumb
-  saved: Breadcrumb
-}
-
-export interface CardInput {
-  name: string
-  description?: string
-  status?: 'active' | 'archived'
-}
-
-export interface CardUpdate {
-  name?: string
-  description?: string
-  status?: 'active' | 'archived'
-}
-
-
 // Event Domain
 export interface Event {
   _id: string
@@ -93,7 +25,6 @@ export interface EventInput {
   description?: string
   status?: string
 }
-
 
 // Profile Domain
 export interface Profile {
@@ -117,31 +48,6 @@ export interface Customer {
   status?: string
 }
 
-// Journey Domain
-export interface Journey {
-  _id: string
-  name: string
-  description?: string
-  status?: string
-}
-
-// Rating Domain
-export interface Rating {
-  _id: string
-  name: string
-  description?: string
-  status?: string
-}
-
-// Note Domain
-export interface Note {
-  _id: string
-  name: string
-  description?: string
-  status?: string
-}
-
-
 // Configuration
 export interface ConfigResponse {
   config_items: unknown[]
@@ -151,4 +57,3 @@ export interface ConfigResponse {
     claims?: Record<string, unknown>
   }
 }
-
