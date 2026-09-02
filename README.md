@@ -211,8 +211,10 @@ All interactive elements in this SPA include `data-automation-id` attributes fol
 
 Cypress targets spa_utils `PageFrame` ids for chrome, not local ones:
 
-- Always present: `nav-drawer-toggle`, `page-frame-title`, `nav-profile-link`, `nav-home-link`, `nav-notifications-link`, `nav-logout-link`
-- Role-gated (token must carry the role): `nav-customer-link`, `nav-customer-members-link`, `nav-products-link`, `nav-settings-link`, …
+- Always present for authenticated users: `nav-drawer-toggle`, `page-frame-title`, `nav-profile-link`, `nav-home-link`, `nav-events-link`, `nav-logout-link`
+- Admin-only: `nav-notifications-link`, `nav-settings-link`
+- Settings (`nav-settings-link`) stays on this SPA's hosting origin at `/customer/config`; Home, Events, Notifications, and Profile use welcome / ALB journey URLs.
+- Removed from the hamburger catalog in `spa_utils` 1.0.1: `nav-products-link`, `nav-customer-link`, `nav-customer-members-link`
 
 Do not define host `nav-*` ids in this SPA.
 

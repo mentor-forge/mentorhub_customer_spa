@@ -1,6 +1,6 @@
 # F009 – 1.0.1 catalog, `/customer/config` Cypress and packaging
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: `F008_host_admin_page_at_config`  
 **Description**: Point Cypress at the spa_utils **1.0.1** hamburger catalog, prove Settings opens this SPA’s `/customer/config`, cover Token claims, admin-gate `/config`, and verify logout `return_to=/discovery/`. Run the packaged SPA as the acceptance gate for F-CS13.
@@ -89,4 +89,28 @@ Do not restore a local drawer. Do not change the spa_utils pin. Do not add an Ev
 
 ## Execution Notes
 
-_Reserved for the task execution agent._
+Plan:
+- Update `cypress/e2e/navigation.cy.ts` to assert the `spa_utils` 1.0.1 PageFrame catalog for customer-only and admin-only logins, including removed hamburger ids, Settings on the hosting `/customer/config` origin, Events/Home on welcome `:8080`, Token tab claims, `/config` role gate, and logout `return_to=/discovery/`.
+- Update `README.md` Testing / Automation Support to document the 1.0.1 catalog ids and admin-only Settings/Notifications behavior.
+- Leave the `spa_utils` pin, router, `/config` implementation, and detail specs unchanged unless the Cypress selectors require an allowed helper.
+- Run `npm run test`, `npm run test:coverage`, `npm run build`, `npm run container`, `npm run service`, and `npm run cypress:run`; record exact results here.
+
+Implementation:
+- Updated `cypress/e2e/navigation.cy.ts` for the `spa_utils` 1.0.1 catalog: customer-only shows ordered Home + Events; admin shows ordered Home + Events + Notifications + Settings; removed `nav-products-link`, `nav-customer-link`, and `nav-customer-members-link` stay absent; mentor browse rows stay absent from admin.
+- Added Settings href assertions before click: `http://localhost:8388/customer/config`, includes `:8388`, excludes `:8080`, excludes `/admin/settings`, and excludes `/customer/customer`; click stays on `/customer/config`.
+- Added Token tab coverage by stubbing `GET **/customer/api/config` with direct `token.profile_id`, `token.customer_id`, and `token.mentor_id` claims, then asserting the three `TokenClaimsCard` display ids.
+- Added `/customer/config` gate coverage for admin stay and non-admin cross-origin redirect to `:8080/discovery/` without AdminPage chrome.
+- Tightened logout coverage so `return_to` must equal `http://localhost:8080/discovery/` and must not point at `127.0.0.1`, `/`, or `/customer/`.
+- Updated `README.md` Automation Support for the 1.0.1 PageFrame ids and Settings host. No `spa_utils` pin, `/config` route, detail specs, Cypress support helpers, or fixture files were changed.
+
+Test results:
+- `npm run test`: passed — 15 test files, 60 tests.
+- `npm run test:coverage`: passed — 15 test files, 60 tests; overall coverage 96.99% statements, 73.91% branches, 100% functions, 96.99% lines.
+- `npm run build`: passed — `vue-tsc && vite build`; existing Vite warnings remained for non-module `/customer/runtime-config.js` and large chunks.
+- `npm run container`: passed — built `ghcr.io/mentor-forge/mentorhub_customer_spa:latest`; Docker reported the existing JSONArgsRecommended warning and npm audit/install-script warnings during image build.
+- `npm run service`: passed — ran `mh down && mh up customer && npm run open`; started db/API/SPA containers including `mentorhub-customer_spa-1`.
+- `npm run cypress:run`: passed — all 4 specs passed against the packaged SPA on `http://localhost:8388`: `customer.cy.ts` 1/1, `deployment.cy.ts` 8/8, `navigation.cy.ts` 10/10, `profile.cy.ts` 3/3; total 22/22.
+
+Environment / follow-up:
+- Started service with `IDP_LOGIN_URI=http://127.0.0.1:8080/login.html`; also exported `GITHUB_TOKEN` from `GITHUB_FOREVER_TOKEN` when present before `npm run service`.
+- This repo has no `npm run lint` script; no lint tooling was added.
