@@ -1,16 +1,4 @@
 import type { 
-  Subscription,
-  SubscriptionInput,
-  SubscriptionUpdate,
-
-  Dashboard,
-  DashboardInput,
-  DashboardUpdate,
-
-  Card,
-  CardInput,
-  CardUpdate,
-
   Event,
   EventInput,
 
@@ -18,12 +6,6 @@ import type {
   ProfileUpdate,
 
   Customer,
-
-  Journey,
-
-  Rating,
-
-  Note,
 
   ConfigResponse,
   Error
@@ -99,63 +81,6 @@ export const api = {
     return request<ConfigResponse>('/config')
   },
 
-  // Subscription Domain
-  async getSubscription(subscriptionId: string): Promise<Subscription> {
-    return request<Subscription>(`/subscription/${subscriptionId}`)
-  },
-
-  async createSubscription(data: SubscriptionInput): Promise<{ _id: string }> {
-    return request<{ _id: string }>('/subscription', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    })
-  },
-
-  async updateSubscription(subscriptionId: string, data: SubscriptionUpdate): Promise<Subscription> {
-    return request<Subscription>(`/subscription/${subscriptionId}`, {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    })
-  },
-
-  // Dashboard Domain
-  async getDashboard(dashboardId: string): Promise<Dashboard> {
-    return request<Dashboard>(`/dashboard/${dashboardId}`)
-  },
-
-  async createDashboard(data: DashboardInput): Promise<{ _id: string }> {
-    return request<{ _id: string }>('/dashboard', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    })
-  },
-
-  async updateDashboard(dashboardId: string, data: DashboardUpdate): Promise<Dashboard> {
-    return request<Dashboard>(`/dashboard/${dashboardId}`, {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    })
-  },
-
-  // Card Domain
-  async getCard(cardId: string): Promise<Card> {
-    return request<Card>(`/card/${cardId}`)
-  },
-
-  async createCard(data: CardInput): Promise<{ _id: string }> {
-    return request<{ _id: string }>('/card', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    })
-  },
-
-  async updateCard(cardId: string, data: CardUpdate): Promise<Card> {
-    return request<Card>(`/card/${cardId}`, {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    })
-  },
-
   // Event Domain
   async getEvent(eventId: string): Promise<Event> {
     return request<Event>(`/event/${eventId}`)
@@ -184,22 +109,6 @@ export const api = {
   async getCustomer(customerId: string): Promise<Customer> {
     return request<Customer>(`/customer/${customerId}`)
   },
-
-  // Journey Domain
-  async getJourney(journeyId: string): Promise<Journey> {
-    return request<Journey>(`/journey/${journeyId}`)
-  },
-
-  // Rating Domain
-  async getRating(ratingId: string): Promise<Rating> {
-    return request<Rating>(`/rating/${ratingId}`)
-  },
-
-  // Note Domain
-  async getNote(noteId: string): Promise<Note> {
-    return request<Note>(`/note/${noteId}`)
-  },
 }
 
 export { ApiError }
-

@@ -39,17 +39,6 @@ Vue route `path` strings stay unprefixed. Vite `base: '/customer/'` prefixes the
 | `http://localhost:8388/customer/` | `/` | `CustomerEditPage.vue` (JWT-scoped customer) |
 | `http://localhost:8388/customer/profile/` | `/profile/` | `ProfilePage.vue` (signed-in profile) |
 | `http://localhost:8388/customer/profile/:id` | `/profile/:id` | `ProfilePage.vue` |
-| `http://localhost:8388/customer/subscriptions/new` | `/subscriptions/new` | `SubscriptionNewPage.vue` |
-| `http://localhost:8388/customer/subscriptions/:id` | `/subscriptions/:id` | `SubscriptionEditPage.vue` |
-| `http://localhost:8388/customer/dashboards/new` | `/dashboards/new` | `DashboardNewPage.vue` |
-| `http://localhost:8388/customer/dashboards/:id` | `/dashboards/:id` | `DashboardEditPage.vue` |
-| `http://localhost:8388/customer/cards/new` | `/cards/new` | `CardNewPage.vue` |
-| `http://localhost:8388/customer/cards/:id` | `/cards/:id` | `CardEditPage.vue` |
-| `http://localhost:8388/customer/events/new` | `/events/new` | `EventNewPage.vue` |
-| `http://localhost:8388/customer/events/:id` | `/events/:id` | `EventViewPage.vue` |
-| `http://localhost:8388/customer/journeys/:id` | `/journeys/:id` | `JourneyViewPage.vue` |
-| `http://localhost:8388/customer/ratings/:id` | `/ratings/:id` | `RatingViewPage.vue` |
-| `http://localhost:8388/customer/notes/:id` | `/notes/:id` | `NoteViewPage.vue` |
 | `http://localhost:8388/customer/config` | `/config` | `AdminPage.vue` (Settings host: Token / Config Items / Versions / Enumerators; `admin` role required). Hamburger Settings stays on this origin via `hostingConfigHref()` (no `:8080` rewrite). |
 
 ## Developer Commands
@@ -113,14 +102,14 @@ npm run container
 src/
   api/              # API client layer (types.ts, client.ts)
   components/       # App-specific UI components (admin components)
-  pages/            # Route-level components (CustomerEditPage, ProfilePage, New, Edit/View pages)
+  pages/            # Route-level components (CustomerEditPage, ProfilePage, AdminPage)
   composables/      # App-specific composables (useConfig, useRoles wrapper; claim helpers; auth re-export)
   stores/           # Pinia stores (UI state only)
   router/           # Vue Router configuration
   plugins/          # Vuetify plugin configuration
 ```
 
-**Page Structure & Journey Boundary**: This Customer SPA hosts detail, new, and edit pages for customer resources, plus `/` (`CustomerEditPage.vue`), `/profile/` (`ProfilePage.vue`), and `/config` (`AdminPage.vue`). Collections and list card dashboards live on the Discovery journey SPA (`/discovery/...`).
+**Page Structure & Journey Boundary**: This Customer SPA hosts `/` (`CustomerEditPage.vue`), `/profile/` (`ProfilePage.vue`), and `/config` (`AdminPage.vue`). Event create/get remain on the API client for other journeys; there is no Event page here. Collections and list card dashboards live on the Discovery journey SPA (`/discovery/...`).
 
 **Note**: This SPA uses `@mentor-forge/mentorhub_spa_utils@1.0.2` for reusable components, composables, and utilities. See the [mentorhub_spa_utils README](../mentorhub_spa_utils/README.md) for complete documentation.
 
@@ -144,7 +133,7 @@ src/
 - Uses TanStack Query (Vue Query) for server state management
 - Query keys follow pattern: `['resource', id]`
 - Mutations invalidate related queries on success
-- Example: `useQuery({ queryKey: ['subscription', id], queryFn: () => api.getSubscription(id) })`
+- Example: `useQuery({ queryKey: ['profile', id], queryFn: () => api.getProfile(id) })`
 
 ### Reusable Components and Composables
 This SPA uses components and composables from `@mentor-forge/mentorhub_spa_utils@1.0.2`:

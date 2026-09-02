@@ -2,9 +2,6 @@ import { describe, it, expect } from 'vitest'
 import type {
   Error,
   Breadcrumb,
-  Subscription,
-  SubscriptionInput,
-  SubscriptionUpdate,
   Event,
   EventInput,
   Customer,
@@ -38,58 +35,6 @@ describe('API Types', () => {
       expect(breadcrumb.by_user).toBe('user-123')
       expect(breadcrumb.at_time).toBe('2024-01-01T00:00:00Z')
       expect(breadcrumb.correlation_id).toBe('corr-abc123')
-    })
-  })
-
-  describe('Subscription', () => {
-    it('should match Subscription interface with all fields', () => {
-      const subscription: Subscription = {
-        _id: '507f1f77bcf86cd799439011',
-        name: 'test-subscription',
-        description: 'Test description',
-        status: 'active',
-        created: {
-          from_ip: '192.168.1.1',
-          by_user: 'user-123',
-          at_time: '2024-01-01T00:00:00Z',
-          correlation_id: 'corr-123'
-        },
-        saved: {
-          from_ip: '192.168.1.1',
-          by_user: 'user-123',
-          at_time: '2024-01-01T00:00:00Z',
-          correlation_id: 'corr-123'
-        }
-      }
-      
-      expect(subscription._id).toBe('507f1f77bcf86cd799439011')
-      expect(subscription.name).toBe('test-subscription')
-      expect(subscription.description).toBe('Test description')
-      expect(subscription.status).toBe('active')
-    })
-  })
-
-  describe('SubscriptionInput', () => {
-    it('should match SubscriptionInput interface', () => {
-      const input: SubscriptionInput = {
-        name: 'test-subscription',
-        description: 'Test description',
-        status: 'active'
-      }
-      
-      expect(input.name).toBe('test-subscription')
-      expect(input.description).toBe('Test description')
-      expect(input.status).toBe('active')
-    })
-  })
-
-  describe('SubscriptionUpdate', () => {
-    it('should match SubscriptionUpdate interface with partial fields', () => {
-      const update: SubscriptionUpdate = {
-        name: 'updated-subscription'
-      }
-      
-      expect(update.name).toBe('updated-subscription')
     })
   })
 
@@ -204,4 +149,3 @@ describe('API Types', () => {
     })
   })
 })
-
