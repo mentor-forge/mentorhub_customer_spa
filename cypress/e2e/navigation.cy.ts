@@ -9,11 +9,14 @@ describe('Navigation (spa_utils PageFrame)', () => {
   const IDP_STUB_PATHNAME = '/login.html'
   const SETTINGS_HREF = `${APP_ORIGIN}${CONFIG_PATHNAME}`
 
+  const STUB_DISPLAY_NAME = 'Ada Lovelace'
+
   const adminConfigBody = {
     config_items: [],
     versions: [],
     enumerators: [],
     token: {
+      display_name: STUB_DISPLAY_NAME,
       profile_id: 'profile-e2e',
       customer_id: 'customer-e2e',
       mentor_id: 'mentor-e2e',
@@ -38,6 +41,34 @@ describe('Navigation (spa_utils PageFrame)', () => {
 
   function stubAdminConfig() {
     cy.intercept('GET', '**/customer/api/config', adminConfigBody).as('getAdminConfig')
+  }
+
+  /**
+   * Patch the stored Cypress JWT with `display_name` and reload so packaged
+   * PageFrame `readDisplayName()` sees the claim. `signCypressJwt` omits it;
+   * do not vendor spa_utils demo `stubJwtDisplayName`.
+   */
+  function stubStoredJwtDisplayName(displayName = STUB_DISPLAY_NAME) {
+    cy.window().then((win) => {
+      const token = win.localStorage.getItem('access_token')
+      if (!token) {
+        throw new Error('stubStoredJwtDisplayName requires an access_token in localStorage')
+      }
+      const parts = token.split('.')
+      if (parts.length < 2 || !parts[1]) {
+        throw new Error('stubStoredJwtDisplayName: access_token is not a JWT')
+      }
+      const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+      const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=')
+      const payload = JSON.parse(atob(padded)) as Record<string, unknown>
+      payload.display_name = displayName
+      const encoded = btoa(JSON.stringify(payload))
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '')
+      win.localStorage.setItem('access_token', `${parts[0]}.${encoded}.${parts[2] ?? ''}`)
+    })
+    cy.reload()
   }
 
   beforeEach(() => {
@@ -79,6 +110,8 @@ describe('Navigation (spa_utils PageFrame)', () => {
       .should('be.visible')
       .and('contain.text', 'Customer')
     cy.get('[data-automation-id="nav-profile-link"]').should('be.visible')
+    // signCypressJwt omits display_name — compact avatar-only chrome.
+    cy.get('[data-automation-id="nav-profile-name-display"]').should('not.exist')
   })
 
   it('hosts Settings at /customer/config for admin with token claims', () => {
@@ -95,6 +128,9 @@ describe('Navigation (spa_utils PageFrame)', () => {
     cy.url().should('not.include', '/customer/customer')
 
     cy.get('[data-automation-id="admin-tab-token"]').click()
+    cy.get('[data-automation-id="admin-token-display-name-display"]')
+      .find('input')
+      .should('have.value', STUB_DISPLAY_NAME)
     cy.get('[data-automation-id="admin-token-profile-id-display"]')
       .find('input')
       .should('have.value', 'profile-e2e')
@@ -104,6 +140,53 @@ describe('Navigation (spa_utils PageFrame)', () => {
     cy.get('[data-automation-id="admin-token-mentor-id-display"]')
       .find('input')
       .should('have.value', 'mentor-e2e')
+  })
+
+  it('shows N/A on Token tab when config token omits display_name', () => {
+    const { display_name: _omitted, ...idsOnly } = adminConfigBody.token
+    cy.intercept('GET', '**/customer/api/config', {
+      ...adminConfigBody,
+      token: {
+        ...idsOnly,
+        name: 'Should Not Appear',
+        given_name: 'Also Hidden',
+        email: 'hidden@example.com',
+      },
+    }).as('getAdminConfigMissingDisplayName')
+
+    cy.login(['admin'])
+    cy.visitPrefixed(CONFIG_PATHNAME)
+    cy.wait('@getAdminConfigMissingDisplayName')
+    cy.url().should('not.include', '/customer/customer')
+
+    cy.get('[data-automation-id="admin-tab-token"]').click()
+    cy.get('[data-automation-id="admin-token-display-name-display"]')
+      .find('input')
+      .should('have.value', 'N/A')
+      .and('not.have.value', 'Should Not Appear')
+    cy.get('[data-automation-id="admin-token-profile-id-display"]')
+      .find('input')
+      .should('have.value', 'profile-e2e')
+    cy.get('[data-automation-id="admin-token-customer-id-display"]')
+      .find('input')
+      .should('have.value', 'customer-e2e')
+    cy.get('[data-automation-id="admin-token-mentor-id-display"]')
+      .find('input')
+      .should('have.value', 'mentor-e2e')
+  })
+
+  it('shows JWT display_name in PageFrame chrome when the claim is stubbed', () => {
+    stubAdminConfig()
+    cy.login(['admin'])
+    cy.visitPrefixed(CONFIG_PATHNAME)
+    cy.wait('@getAdminConfig')
+    stubStoredJwtDisplayName(STUB_DISPLAY_NAME)
+
+    cy.get('[data-automation-id="nav-profile-link"]')
+      .should('be.visible')
+      .find('[data-automation-id="nav-profile-name-display"]')
+      .should('be.visible')
+      .and('contain', STUB_DISPLAY_NAME)
   })
 
   it('should keep an admin on /customer/config', () => {

@@ -175,7 +175,7 @@ See the [mentorhub_spa_utils README](../mentorhub_spa_utils/README.md) for compl
 - Uses Cypress against the packaged SPA on `http://localhost:8388` (`npm run service`). Do not point Cypress at `:8080`
 - Entry and visits are prefixed: `/customer/`, `/customer/profile/`, …
 - Prefer `cy.visitPrefixed(...)` from `cypress/support/commands.ts` over raw `cy.visit` for in-app routes — it asserts `PerformanceNavigationTiming` so a Vue Router rewrite cannot mask an un-prefixed document fetch
-- Specs: `navigation.cy.ts` (PageFrame chrome, this SPA’s `/customer/config` Settings host and admin gate), `customer.cy.ts`, `profile.cy.ts` (customer read; owning-customer write; mismatched `profile_id` → API 403), `deployment.cy.ts` (redirects, history fallback, cache headers, runtime-config, authenticated and unauthenticated `/customer/api` proxy). Hamburger catalog role gates are tested in spa_utils, not here.
+- Specs: `navigation.cy.ts` (PageFrame chrome, this SPA’s `/customer/config` Settings host and admin gate, Token-tab / chrome `display_name` from spa_utils **1.0.3** (`admin-token-display-name-display`, `nav-profile-name-display`)), `customer.cy.ts`, `profile.cy.ts` (customer read; owning-customer write; mismatched `profile_id` → API 403; document `name` is not the token display claim), `deployment.cy.ts` (redirects, history fallback, cache headers, runtime-config, authenticated and unauthenticated `/customer/api` proxy). Hamburger catalog role gates are tested in spa_utils, not here.
 - UI role gating is UX evidence only — API authorization lives in `customer_api`. Do not seed `admin` for profile writes; that masks ownership checks
 - Run tests: `npm run cypress` (interactive) or `npm run cypress:run` (headless)
 
@@ -205,8 +205,10 @@ role gates and collection hrefs are tested in spa_utils — this SPA only assert
 and routes:
 
 - Always present for authenticated users: `nav-drawer-toggle`, `page-frame-title`, `nav-profile-link`
-- spa_utils 1.0.3 chrome: `nav-profile-name-display` (JWT `display_name` next to the avatar; omitted when the claim is blank or missing)
-- This SPA hosts Settings at `/customer/config` (`nav-settings-link`, admin-only). Token tab `display_name` is `admin-token-display-name-display` (owned by spa_utils `TokenClaimsCard`)
+- spa_utils **1.0.3** ids this host asserts (not local `nav-*` ids):
+  - Token tab `admin-token-display-name-display` — config intercept `token.display_name`; missing claim renders `N/A` (no `name` / `given_name` / `email` fallback)
+  - PageFrame chrome `nav-profile-name-display` inside `nav-profile-link` — JWT `display_name` next to the avatar; omitted when the claim is blank or missing
+- This SPA hosts Settings at `/customer/config` (`nav-settings-link`, admin-only)
 
 Do not define host `nav-*` ids in this SPA.
 
