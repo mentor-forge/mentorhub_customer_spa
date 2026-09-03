@@ -111,7 +111,9 @@ src/
 
 **Page Structure & Journey Boundary**: This Customer SPA hosts `/` (`CustomerEditPage.vue`), `/profile/` (`ProfilePage.vue`), and `/config` (`AdminPage.vue`). Event create/get remain on the API client for other journeys; there is no Event page here. Collections and list card dashboards live on the Discovery journey SPA (`/discovery/...`).
 
-**Note**: This SPA uses `@mentor-forge/mentorhub_spa_utils@1.0.2` for reusable components, composables, and utilities. See the [mentorhub_spa_utils README](../mentorhub_spa_utils/README.md) for complete documentation.
+**Note**: This SPA uses `@mentor-forge/mentorhub_spa_utils@1.0.3` for reusable components, composables, and utilities. See the [mentorhub_spa_utils README](../mentorhub_spa_utils/README.md) for complete documentation.
+
+spa_utils **1.0.3** owns Token-tab `display_name` (`admin-token-display-name-display`) and PageFrame chrome `nav-profile-name-display` (JWT `display_name` next to the avatar, with no fallback to `name` / `given_name` / `email` / `user_id` / `sub`). This SPA does not map a local display name. Missing Token-tab string claims display `N/A`.
 
 ## Key Implementation Patterns
 
@@ -136,8 +138,8 @@ src/
 - Example: `useQuery({ queryKey: ['profile', id], queryFn: () => api.getProfile(id) })`
 
 ### Reusable Components and Composables
-This SPA uses components and composables from `@mentor-forge/mentorhub_spa_utils@1.0.2`:
-- **Shell**: `PageFrame` (universal navigation shell; local nav configuration is disallowed). Catalog rows and role gates are compiled into spa_utils. **Settings** lands on this SPA's `/config` via `hostingConfigHref()`.
+This SPA uses components and composables from `@mentor-forge/mentorhub_spa_utils@1.0.3`:
+- **Shell**: `PageFrame` (universal navigation shell; local nav configuration is disallowed). Catalog rows and role gates are compiled into spa_utils. **Settings** lands on this SPA's `/config` via `hostingConfigHref()`. Token-tab `display_name` (`admin-token-display-name-display`) and chrome `nav-profile-name-display` are owned by spa_utils — do not invent a local display-name mapping.
 - **Components**: Prefer `DataCard` + typed editors; `AutoSaveField` / `AutoSaveSelect` remain for legacy pages
 - **Composables**: `provideEditorConfig`, `useErrorHandler`, `useRoles`, `useAuth`
 - **Utilities**: `formatDate`, `validationRules`, `buildJourneyUrl`
@@ -203,7 +205,8 @@ role gates and collection hrefs are tested in spa_utils — this SPA only assert
 and routes:
 
 - Always present for authenticated users: `nav-drawer-toggle`, `page-frame-title`, `nav-profile-link`
-- This SPA hosts Settings at `/customer/config` (`nav-settings-link`, admin-only)
+- spa_utils 1.0.3 chrome: `nav-profile-name-display` (JWT `display_name` next to the avatar; omitted when the claim is blank or missing)
+- This SPA hosts Settings at `/customer/config` (`nav-settings-link`, admin-only). Token tab `display_name` is `admin-token-display-name-display` (owned by spa_utils `TokenClaimsCard`)
 
 Do not define host `nav-*` ids in this SPA.
 

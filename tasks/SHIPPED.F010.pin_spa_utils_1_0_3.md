@@ -1,6 +1,6 @@
 # F010 – Pin `@mentor-forge/mentorhub_spa_utils@1.0.3` (`token.display_name`)
 
-**Status**: Pending  
+**Status**: Shipped  
 **Type**: Feature  
 **Depends On**: _(none — first task in this wave)_  
 **Description**: This repo owns the Customer SPA **1.0.3 pin** ([F-CS14 / GitHub #19](https://github.com/mentor-forge/mentorhub_customer_spa/issues/19)). Bump `@mentor-forge/mentorhub_spa_utils` from exact `1.0.2` to exact **`1.0.3`**, refresh the lockfile from CodeArtifact, and replace any local use of token `name` with token `display_name`. Do **not** change routes in this task.
@@ -98,3 +98,21 @@ Paths are relative to **this SPA repository root**.
 Do not change the `/config` route. Do not pass disallowed `PageFrame` props. Do not change Cypress specs in this task unless a compile of test helpers breaks. Do not change `src/router/index.ts`, `vite.config.ts`, `nginx.conf.template`, or `Dockerfile`. Do not rename Customer / Profile / Event `name` fields.
 
 ## Execution Notes
+
+**Plan**
+1. Confirm `@mentor-forge/mentorhub_spa_utils@1.0.3` is published (`mh`, then `npm view`). If missing, Blocked and stop.
+2. Pin `package.json` to exact `1.0.3` (no caret). `npm install --include=dev` and confirm lockfile + `npm ls`.
+3. Local token-claim audit: no `token.name` reads in `src` / README. Remaining `name` hits are Customer / Profile / Event / enumerator / collection / route names. `ConfigResponse.token` is `{ claims?: Record<string, unknown> }` with no display field; `useAuth` only reads `customer_id` / `profile_id`. Do not add a local mapper or speculative `display_name` type unless 1.0.3 compile requires it.
+4. Update `README.md` to pin **1.0.3** and document spa_utils ownership of Token-tab `display_name` (`admin-token-display-name-display`) and PageFrame chrome (`nav-profile-name-display`). Keep `/customer/config` Settings-host wording.
+5. After install, verify Cypress subpaths (`cypress/jwtDefaults`, `cypress/registerJwtSignTask`, `cypress/registerAuthCommands`) still resolve. Touch `cypress.config.ts` / `cypress/support/e2e.ts` only if a subpath moved. Touch `vitest.config.ts` only if inline setting must change.
+6. Run `npm run test`, `npm run test:coverage`, `npm run build`. Confirmation `rg` searches. Do not run Cypress or packaging (F011).
+
+**Results**
+- Branch: `F-CS14-TokenUpdate` (unchanged).
+- CodeArtifact: `mh` then `npm view @mentor-forge/mentorhub_spa_utils version` → **1.0.3** (published; not Blocked).
+- Pin: `package.json` exact `"1.0.3"` (no caret). `npm install --include=dev`. `npm ls` → `@mentor-forge/mentorhub_spa_utils@1.0.3`. Lockfile resolved from CodeArtifact (`mentorhub_spa_utils-1.0.3.tgz`).
+- Token-claim audit: `rg 'token\.name|token\[.name.\]|token\.get\(.name.\)' src README.md` → **zero hits**. `display_name` appears only in README ownership notes (spa_utils Token tab + PageFrame chrome). Remaining `src` `name` hits are Customer / Profile / Event document fields, enumerator / collection names, Vue route names, `ApiError.name`, and `headers.get(name)` — not the JWT display claim.
+- Production types/composables unchanged: `ConfigResponse.token` stays `{ claims?: Record<string, unknown> }` (already admits `display_name`; no `name` alias). `useAuth` still only reads `customer_id` / `profile_id`. No local mapper. `AdminPage` still pass-through of `config`. `PageFrame` still `page-title="Customer"` only. Cypress subpaths unchanged in 1.0.3. `vitest.config.ts` inline setting unchanged.
+- README: pin **1.0.3**; Token-tab `admin-token-display-name-display` and chrome `nav-profile-name-display` owned by spa_utils; `/customer/config` Settings-host wording kept.
+- `src/api/client.test.ts`: added 204 / non-JSON error cases so `src/api/**` branch coverage meets the existing 75% threshold (pre-existing gap on `request()` empty-body and JSON-parse catch; not a token `name` fixture). Token fixture remains `{ claims: {} }`.
+- Tests: `npm run test` — 38 passed (9 files). `npm run test:coverage` — api 100% stmts/branch/funcs/lines; composables above thresholds; no threshold change. `npm run build` — `vue-tsc` clean, Vite production build succeeded. No `lint` script in this repo. Cypress and packaging left to F011.
