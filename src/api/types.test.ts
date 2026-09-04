@@ -92,13 +92,13 @@ describe('API Types', () => {
     it('should match Profile interface', () => {
       const profile: Profile = {
         _id: '507f1f77bcf86cd799439011',
-        name: 'test-profile',
+        display_name: 'Test Profile',
         description: 'Test description',
         status: 'active'
       }
       
       expect(profile._id).toBe('507f1f77bcf86cd799439011')
-      expect(profile.name).toBe('test-profile')
+      expect(profile.display_name).toBe('Test Profile')
       expect(profile.status).toBe('active')
     })
   })
@@ -106,11 +106,11 @@ describe('API Types', () => {
   describe('ProfileUpdate', () => {
     it('should match ProfileUpdate interface', () => {
       const update: ProfileUpdate = {
-        name: 'updated-profile',
+        display_name: 'Updated Profile',
         description: 'Updated description'
       }
       
-      expect(update.name).toBe('updated-profile')
+      expect(update.display_name).toBe('Updated Profile')
       expect(update.description).toBe('Updated description')
     })
   })

@@ -29,13 +29,13 @@ export interface EventInput {
 // Profile Domain
 export interface Profile {
   _id: string
-  name: string
+  display_name: string
   description?: string
   status?: string
 }
 
 export interface ProfileUpdate {
-  name?: string
+  display_name?: string
   description?: string
   status?: string
 }
