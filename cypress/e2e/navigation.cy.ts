@@ -43,32 +43,44 @@ describe('Navigation (spa_utils PageFrame)', () => {
     cy.intercept('GET', '**/customer/api/config', adminConfigBody).as('getAdminConfig')
   }
 
+  /** Patch a Cypress JWT payload with `display_name`. `signCypressJwt` omits it. */
+  function jwtWithDisplayName(token: string, displayName: string): string {
+    const parts = token.split('.')
+    if (parts.length < 2 || !parts[1]) {
+      throw new Error('jwtWithDisplayName: token is not a JWT')
+    }
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=')
+    const payload = JSON.parse(atob(padded)) as Record<string, unknown>
+    payload.display_name = displayName
+    const encoded = btoa(JSON.stringify(payload))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '')
+    return `${parts[0]}.${encoded}.${parts[2] ?? ''}`
+  }
+
   /**
-   * Patch the stored Cypress JWT with `display_name` and reload so packaged
-   * PageFrame `readDisplayName()` sees the claim. `signCypressJwt` omits it;
-   * do not vendor spa_utils demo `stubJwtDisplayName`.
+   * Seed auth like `cy.login(['admin'])` but with JWT `display_name` already set
+   * so PageFrame mounts once with the claim. Do not vendor spa_utils demo
+   * `stubJwtDisplayName` (that helper reloads and leaves the drawer closed).
    */
-  function stubStoredJwtDisplayName(displayName = STUB_DISPLAY_NAME) {
-    cy.window().then((win) => {
-      const token = win.localStorage.getItem('access_token')
-      if (!token) {
-        throw new Error('stubStoredJwtDisplayName requires an access_token in localStorage')
-      }
-      const parts = token.split('.')
-      if (parts.length < 2 || !parts[1]) {
-        throw new Error('stubStoredJwtDisplayName: access_token is not a JWT')
-      }
-      const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
-      const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=')
-      const payload = JSON.parse(atob(padded)) as Record<string, unknown>
-      payload.display_name = displayName
-      const encoded = btoa(JSON.stringify(payload))
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-        .replace(/=+$/, '')
-      win.localStorage.setItem('access_token', `${parts[0]}.${encoded}.${parts[2] ?? ''}`)
+  function loginAdminWithDisplayName(displayName = STUB_DISPLAY_NAME) {
+    const secret = Cypress.env('JWT_SECRET') as string
+    cy.task<{ token: string; expiresAt: string }>('signCypressJwt', {
+      roles: ['admin'],
+      secret,
+    }).then(({ token, expiresAt }) => {
+      const patched = jwtWithDisplayName(token, displayName)
+      cy.visit(CUSTOMER_HOME, {
+        onBeforeLoad(win) {
+          win.localStorage.setItem('access_token', patched)
+          win.localStorage.setItem('token_expires_at', expiresAt)
+          win.localStorage.setItem('user_roles', JSON.stringify(['admin']))
+        },
+      })
     })
-    cy.reload()
+    cy.url({ timeout: 10000 }).should('not.include', '/login')
   }
 
   beforeEach(() => {
@@ -176,17 +188,19 @@ describe('Navigation (spa_utils PageFrame)', () => {
   })
 
   it('shows JWT display_name in PageFrame chrome when the claim is stubbed', () => {
+    // Payload-patched JWT fails signature checks; stub APIs so chrome stays on /customer/.
     stubAdminConfig()
-    cy.login(['admin'])
-    cy.visitPrefixed(CONFIG_PATHNAME)
-    cy.wait('@getAdminConfig')
-    stubStoredJwtDisplayName(STUB_DISPLAY_NAME)
+    cy.intercept('GET', '**/customer/api/customer/**', {
+      statusCode: 200,
+      body: { name: 'Acme', description: '', status: 'active' },
+    })
+    loginAdminWithDisplayName(STUB_DISPLAY_NAME)
 
     cy.get('[data-automation-id="nav-profile-link"]').should('be.visible')
     cy.get('[data-automation-id="nav-profile-link"]')
       .find('[data-automation-id="nav-profile-name-display"]')
       .should('not.exist')
-    cy.get('[data-automation-id="nav-drawer-toggle"]').click({ force: true })
+    cy.get('[data-automation-id="nav-drawer-toggle"]').should('be.visible').click({ force: true })
     cy.get('[data-automation-id="nav-logout-link"]').should('be.visible')
     cy.get('[data-automation-id="nav-profile-name-display"]')
       .should('be.visible')
@@ -206,14 +220,23 @@ describe('Navigation (spa_utils PageFrame)', () => {
   })
 
   it('should not keep a non-admin on /customer/config showing AdminPage', () => {
+    const seenUrls: string[] = []
+    cy.on('url:changed', (url) => {
+      seenUrls.push(url)
+    })
+
     cy.login(['customer'])
     cy.visit(CONFIG_PATHNAME)
 
-    cy.origin('http://localhost:8080', () => {
-      cy.location('href', { timeout: 10000 }).should('include', '/discovery/')
-      cy.location('pathname').should('not.eq', '/customer/config')
-      cy.get('[data-automation-id="admin-tab-token"]').should('not.exist')
-      cy.get('[data-automation-id="admin-tab-config"]').should('not.exist')
+    // Guard replaces to ALB /discovery/; live Discovery may bounce to IdP
+    // (welcome :8080 or Tailscale). Do not query the AUT after that hop.
+    cy.wrap(seenUrls, { timeout: 10000 }).should((urls) => {
+      const leftAdmin = urls.some((url) => {
+        const leftConfig = !url.includes('/customer/config')
+        const discoveryOrIdp = url.includes('/discovery/') || url.includes('/login.html')
+        return leftConfig && discoveryOrIdp
+      })
+      expect(leftAdmin, `navigations: ${urls.join(' -> ')}`).to.equal(true)
     })
   })
 
