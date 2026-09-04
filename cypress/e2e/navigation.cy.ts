@@ -9,11 +9,14 @@ describe('Navigation (spa_utils PageFrame)', () => {
   const IDP_STUB_PATHNAME = '/login.html'
   const SETTINGS_HREF = `${APP_ORIGIN}${CONFIG_PATHNAME}`
 
+  const STUB_DISPLAY_NAME = 'Ada Lovelace'
+
   const adminConfigBody = {
     config_items: [],
     versions: [],
     enumerators: [],
     token: {
+      display_name: STUB_DISPLAY_NAME,
       profile_id: 'profile-e2e',
       customer_id: 'customer-e2e',
       mentor_id: 'mentor-e2e',
@@ -79,6 +82,10 @@ describe('Navigation (spa_utils PageFrame)', () => {
       .should('be.visible')
       .and('contain.text', 'Customer')
     cy.get('[data-automation-id="nav-profile-link"]').should('be.visible')
+    // Config token display_name lives in the drawer, not under the avatar.
+    cy.get('[data-automation-id="nav-profile-link"]')
+      .find('[data-automation-id="nav-profile-name-display"]')
+      .should('not.exist')
   })
 
   it('hosts Settings at /customer/config for admin with token claims', () => {
@@ -95,6 +102,9 @@ describe('Navigation (spa_utils PageFrame)', () => {
     cy.url().should('not.include', '/customer/customer')
 
     cy.get('[data-automation-id="admin-tab-token"]').click()
+    cy.get('[data-automation-id="admin-token-display-name-display"]')
+      .find('input')
+      .should('have.value', STUB_DISPLAY_NAME)
     cy.get('[data-automation-id="admin-token-profile-id-display"]')
       .find('input')
       .should('have.value', 'profile-e2e')
@@ -104,6 +114,56 @@ describe('Navigation (spa_utils PageFrame)', () => {
     cy.get('[data-automation-id="admin-token-mentor-id-display"]')
       .find('input')
       .should('have.value', 'mentor-e2e')
+  })
+
+  it('shows unknown on Token tab when config token omits display_name', () => {
+    const { display_name: _omitted, ...idsOnly } = adminConfigBody.token
+    cy.intercept('GET', '**/customer/api/config', {
+      ...adminConfigBody,
+      token: {
+        ...idsOnly,
+        name: 'Should Not Appear',
+        given_name: 'Also Hidden',
+        email: 'hidden@example.com',
+      },
+    }).as('getAdminConfigMissingDisplayName')
+
+    cy.login(['admin'])
+    cy.visitPrefixed(CONFIG_PATHNAME)
+    cy.wait('@getAdminConfigMissingDisplayName')
+    cy.url().should('not.include', '/customer/customer')
+
+    cy.get('[data-automation-id="admin-tab-token"]').click()
+    cy.get('[data-automation-id="admin-token-display-name-display"]')
+      .find('input')
+      .should('have.value', 'unknown')
+      .and('not.have.value', 'Should Not Appear')
+    cy.get('[data-automation-id="admin-token-profile-id-display"]')
+      .find('input')
+      .should('have.value', 'profile-e2e')
+    cy.get('[data-automation-id="admin-token-customer-id-display"]')
+      .find('input')
+      .should('have.value', 'customer-e2e')
+    cy.get('[data-automation-id="admin-token-mentor-id-display"]')
+      .find('input')
+      .should('have.value', 'mentor-e2e')
+  })
+
+  it('shows config token display_name in PageFrame chrome', () => {
+    stubAdminConfig()
+    cy.login(['admin'])
+    cy.wait('@getAdminConfig')
+
+    cy.get('[data-automation-id="nav-profile-link"]').should('be.visible')
+    cy.get('[data-automation-id="nav-profile-link"]')
+      .find('[data-automation-id="nav-profile-name-display"]')
+      .should('not.exist')
+    cy.get('[data-automation-id="nav-drawer-toggle"]').should('be.visible').click({ force: true })
+    cy.get('[data-automation-id="nav-logout-link"]').should('be.visible')
+    cy.get('[data-automation-id="nav-profile-name-display"]')
+      .scrollIntoView()
+      .should('be.visible')
+      .and('contain', STUB_DISPLAY_NAME)
   })
 
   it('should keep an admin on /customer/config', () => {
@@ -119,14 +179,23 @@ describe('Navigation (spa_utils PageFrame)', () => {
   })
 
   it('should not keep a non-admin on /customer/config showing AdminPage', () => {
+    const seenUrls: string[] = []
+    cy.on('url:changed', (url) => {
+      seenUrls.push(url)
+    })
+
     cy.login(['customer'])
     cy.visit(CONFIG_PATHNAME)
 
-    cy.origin('http://localhost:8080', () => {
-      cy.location('href', { timeout: 10000 }).should('include', '/discovery/')
-      cy.location('pathname').should('not.eq', '/customer/config')
-      cy.get('[data-automation-id="admin-tab-token"]').should('not.exist')
-      cy.get('[data-automation-id="admin-tab-config"]').should('not.exist')
+    // Guard replaces to ALB /discovery/; live Discovery may bounce to IdP
+    // (welcome :8080 or Tailscale). Do not query the AUT after that hop.
+    cy.wrap(seenUrls, { timeout: 10000 }).should((urls) => {
+      const leftAdmin = urls.some((url) => {
+        const leftConfig = !url.includes('/customer/config')
+        const discoveryOrIdp = url.includes('/discovery/') || url.includes('/login.html')
+        return leftConfig && discoveryOrIdp
+      })
+      expect(leftAdmin, `navigations: ${urls.join(' -> ')}`).to.equal(true)
     })
   })
 

@@ -80,5 +80,44 @@ describe('API Client', () => {
       expect(localStorage.getItem('token_expires_at')).toBeNull()
       expect(redirectToIdpLogin).toHaveBeenCalledOnce()
     })
+
+    it('should ignore non-JSON error bodies', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+        json: async () => {
+          throw new Error('not json')
+        },
+      })
+
+      await expect(api.getConfig()).rejects.toMatchObject({
+        status: 500,
+        message: 'HTTP 500: Internal Server Error',
+      })
+      expect(redirectToIdpLogin).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('empty responses', () => {
+    beforeEach(() => {
+      localStorage.setItem('access_token', 'test-token')
+    })
+
+    it('should return an empty object for 204 or zero-length bodies', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 204,
+        headers: {
+          get: (name: string) => name === 'content-length' ? '0' : null,
+        },
+        json: async () => {
+          throw new Error('no body')
+        },
+      })
+
+      const result = await api.getConfig()
+      expect(result).toEqual({})
+    })
   })
 })

@@ -25,12 +25,12 @@
         <v-card>
           <v-card-text>
             <AutoSaveField
-              :model-value="profile.name"
-              label="Name *"
-              :rules="[rules.required, rules.namePattern]"
-              hint="No whitespace, max 40 characters"
-              :on-save="(value: string | number) => updateField('name', String(value))"
-              automation-id="profile-view-name-input"
+              :model-value="profile.display_name"
+              label="Display Name *"
+              :rules="[rules.required, rules.displayNamePattern]"
+              hint="Max 255 characters, no tabs or newlines"
+              :on-save="(value: string | number) => updateField('display_name', String(value))"
+              automation-id="profile-view-display-name-input"
             />
 
             <AutoSaveField
@@ -93,7 +93,7 @@ const { showError, errorMessage } = useErrorHandler(errorRef as any)
 
 const rules = {
   required: validationRules.required,
-  namePattern: validationRules.namePattern,
+  displayNamePattern: validationRules.descriptionPattern,
   descriptionPattern: validationRules.descriptionPattern,
 }
 

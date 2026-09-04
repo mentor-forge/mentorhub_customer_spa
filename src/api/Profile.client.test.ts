@@ -15,7 +15,7 @@ describe('API Client - Profile Endpoints', () => {
   it('should update a profile', async () => {
     const mockProfile = {
       _id: '507f1f77bcf86cd799439011',
-      name: 'updated-profile',
+      display_name: 'Updated Profile',
       description: 'Updated description'
     }
 
@@ -26,14 +26,16 @@ describe('API Client - Profile Endpoints', () => {
       json: async () => mockProfile
     })
 
-    const result = await api.updateProfile('507f1f77bcf86cd799439011', { name: 'updated-profile' })
+    const result = await api.updateProfile('507f1f77bcf86cd799439011', {
+      display_name: 'Updated Profile'
+    })
 
     expect(result).toEqual(mockProfile)
     expect(mockFetch).toHaveBeenCalledWith(
       '/customer/api/profile/507f1f77bcf86cd799439011',
       expect.objectContaining({
         method: 'PATCH',
-        body: JSON.stringify({ name: 'updated-profile' })
+        body: JSON.stringify({ display_name: 'Updated Profile' })
       })
     )
   })
@@ -41,7 +43,7 @@ describe('API Client - Profile Endpoints', () => {
   it('should get a single profile', async () => {
     const mockProfile = {
       _id: '507f1f77bcf86cd799439011',
-      name: 'test-profile'
+      display_name: 'Test Profile'
     }
 
     mockFetch.mockResolvedValueOnce({

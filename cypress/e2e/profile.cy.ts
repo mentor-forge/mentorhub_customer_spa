@@ -32,7 +32,7 @@ describe('Profile Domain', () => {
     cy.visitPrefixed('/customer/profile/')
 
     cy.get('[data-automation-id="profile-view-page"]').should('be.visible')
-    cy.get('[data-automation-id="profile-view-name-input"]').should('be.visible')
+    cy.get('[data-automation-id="profile-view-display-name-input"]').should('be.visible')
     cy.get('[data-automation-id="profile-view-description-input"]').should('be.visible')
     cy.get('[data-automation-id="profile-view-status-input"]').should('be.visible')
   })
