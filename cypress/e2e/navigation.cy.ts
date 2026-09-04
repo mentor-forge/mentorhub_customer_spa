@@ -161,6 +161,7 @@ describe('Navigation (spa_utils PageFrame)', () => {
     cy.get('[data-automation-id="nav-drawer-toggle"]').should('be.visible').click({ force: true })
     cy.get('[data-automation-id="nav-logout-link"]').should('be.visible')
     cy.get('[data-automation-id="nav-profile-name-display"]')
+      .scrollIntoView()
       .should('be.visible')
       .and('contain', STUB_DISPLAY_NAME)
   })
