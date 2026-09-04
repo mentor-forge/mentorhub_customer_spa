@@ -43,46 +43,6 @@ describe('Navigation (spa_utils PageFrame)', () => {
     cy.intercept('GET', '**/customer/api/config', adminConfigBody).as('getAdminConfig')
   }
 
-  /** Patch a Cypress JWT payload with `display_name`. `signCypressJwt` omits it. */
-  function jwtWithDisplayName(token: string, displayName: string): string {
-    const parts = token.split('.')
-    if (parts.length < 2 || !parts[1]) {
-      throw new Error('jwtWithDisplayName: token is not a JWT')
-    }
-    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
-    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=')
-    const payload = JSON.parse(atob(padded)) as Record<string, unknown>
-    payload.display_name = displayName
-    const encoded = btoa(JSON.stringify(payload))
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=+$/, '')
-    return `${parts[0]}.${encoded}.${parts[2] ?? ''}`
-  }
-
-  /**
-   * Seed auth like `cy.login(['admin'])` but with JWT `display_name` already set
-   * so PageFrame mounts once with the claim. Do not vendor spa_utils demo
-   * `stubJwtDisplayName` (that helper reloads and leaves the drawer closed).
-   */
-  function loginAdminWithDisplayName(displayName = STUB_DISPLAY_NAME) {
-    const secret = Cypress.env('JWT_SECRET') as string
-    cy.task<{ token: string; expiresAt: string }>('signCypressJwt', {
-      roles: ['admin'],
-      secret,
-    }).then(({ token, expiresAt }) => {
-      const patched = jwtWithDisplayName(token, displayName)
-      cy.visit(CUSTOMER_HOME, {
-        onBeforeLoad(win) {
-          win.localStorage.setItem('access_token', patched)
-          win.localStorage.setItem('token_expires_at', expiresAt)
-          win.localStorage.setItem('user_roles', JSON.stringify(['admin']))
-        },
-      })
-    })
-    cy.url({ timeout: 10000 }).should('not.include', '/login')
-  }
-
   beforeEach(() => {
     cy.clearLocalStorage()
   })
@@ -122,8 +82,10 @@ describe('Navigation (spa_utils PageFrame)', () => {
       .should('be.visible')
       .and('contain.text', 'Customer')
     cy.get('[data-automation-id="nav-profile-link"]').should('be.visible')
-    // signCypressJwt omits display_name — compact avatar-only chrome.
-    cy.get('[data-automation-id="nav-profile-name-display"]').should('not.exist')
+    // Config token display_name lives in the drawer, not under the avatar.
+    cy.get('[data-automation-id="nav-profile-link"]')
+      .find('[data-automation-id="nav-profile-name-display"]')
+      .should('not.exist')
   })
 
   it('hosts Settings at /customer/config for admin with token claims', () => {
@@ -154,7 +116,7 @@ describe('Navigation (spa_utils PageFrame)', () => {
       .should('have.value', 'mentor-e2e')
   })
 
-  it('shows N/A on Token tab when config token omits display_name', () => {
+  it('shows unknown on Token tab when config token omits display_name', () => {
     const { display_name: _omitted, ...idsOnly } = adminConfigBody.token
     cy.intercept('GET', '**/customer/api/config', {
       ...adminConfigBody,
@@ -174,7 +136,7 @@ describe('Navigation (spa_utils PageFrame)', () => {
     cy.get('[data-automation-id="admin-tab-token"]').click()
     cy.get('[data-automation-id="admin-token-display-name-display"]')
       .find('input')
-      .should('have.value', 'N/A')
+      .should('have.value', 'unknown')
       .and('not.have.value', 'Should Not Appear')
     cy.get('[data-automation-id="admin-token-profile-id-display"]')
       .find('input')
@@ -187,14 +149,10 @@ describe('Navigation (spa_utils PageFrame)', () => {
       .should('have.value', 'mentor-e2e')
   })
 
-  it('shows JWT display_name in PageFrame chrome when the claim is stubbed', () => {
-    // Payload-patched JWT fails signature checks; stub APIs so chrome stays on /customer/.
+  it('shows config token display_name in PageFrame chrome', () => {
     stubAdminConfig()
-    cy.intercept('GET', '**/customer/api/customer/**', {
-      statusCode: 200,
-      body: { name: 'Acme', description: '', status: 'active' },
-    })
-    loginAdminWithDisplayName(STUB_DISPLAY_NAME)
+    cy.login(['admin'])
+    cy.wait('@getAdminConfig')
 
     cy.get('[data-automation-id="nav-profile-link"]').should('be.visible')
     cy.get('[data-automation-id="nav-profile-link"]')
