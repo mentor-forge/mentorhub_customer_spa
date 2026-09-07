@@ -16,6 +16,13 @@ const router = createRouter({
       component: () => import('@/pages/CustomerEditPage.vue'),
       meta: { requiresAuth: true }
     },
+    {
+      path: '/:id',
+      alias: '/customer/:id',
+      name: 'CustomerDetail',
+      component: () => import('@/pages/CustomerEditPage.vue'),
+      meta: { requiresAuth: true }
+    },
     
     // Profile
     {

@@ -50,6 +50,13 @@ describe('router /config role gate', () => {
     await router.replace('/')
   })
 
+  it('resolves /:id to CustomerDetail', () => {
+    const resolved = router.resolve('/d00000000000000000000001')
+    expect(resolved.name).toBe('CustomerDetail')
+    expect(resolved.params.id).toBe('d00000000000000000000001')
+    expect(resolved.meta.requiresAuth).toBe(true)
+  })
+
   it('resolves /config to the admin-gated AdminPage host', () => {
     const resolved = router.resolve('/config')
     expect(resolved.name).toBe('Admin')
