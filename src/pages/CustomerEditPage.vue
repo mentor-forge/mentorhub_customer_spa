@@ -9,7 +9,7 @@
     <v-row v-if="!customerId">
       <v-col cols="12" md="8">
         <v-alert type="info" variant="tonal">
-          No customer ID found in access token.
+          No customer ID found.
         </v-alert>
       </v-col>
     </v-row>
@@ -63,12 +63,14 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { useQuery } from '@tanstack/vue-query'
 import { useErrorHandler } from '@mentor-forge/mentorhub_spa_utils'
 import { api } from '@/api/client'
 import { getStoredCustomerId } from '@/composables/useAuth'
 
-const customerId = computed(() => getStoredCustomerId())
+const routeLocation = useRoute()
+const customerId = computed(() => (routeLocation.params.id as string) || getStoredCustomerId())
 
 const { data: customer, isLoading, error: queryError } = useQuery({
   queryKey: ['customer', customerId],
