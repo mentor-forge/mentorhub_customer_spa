@@ -176,6 +176,7 @@ See the [mentorhub_spa_utils README](../mentorhub_spa_utils/README.md) for compl
 - Entry and visits are prefixed: `/customer/`, `/customer/profile/`, …
 - Prefer `cy.visitPrefixed(...)` from `cypress/support/commands.ts` over raw `cy.visit` for in-app routes — it asserts `PerformanceNavigationTiming` so a Vue Router rewrite cannot mask an un-prefixed document fetch
 - Specs: `navigation.cy.ts` (PageFrame chrome, this SPA’s `/customer/config` Settings host and admin gate, Token-tab / chrome `display_name` from spa_utils **1.0.6** (`admin-token-display-name-display`, `nav-profile-name-display`)), `customer.cy.ts`, `profile.cy.ts` (customer read; owning-customer write; mismatched `profile_id` → API 403; document `name` is not the token display claim), `deployment.cy.ts` (redirects, history fallback, cache headers, runtime-config, authenticated and unauthenticated `/customer/api` proxy). Hamburger catalog role gates are tested in spa_utils, not here.
+- This host does **not** assert a spa_utils **1.0.6** markdown resting view — there is no `MarkdownEditor` consumer. Profile description stays an always-visible `AutoSaveField` textarea (`profile-view-description-input`); customer description stays a readonly textarea (`customer-edit-description-input`). Do not invent a display-activation step for either.
 - UI role gating is UX evidence only — API authorization lives in `customer_api`. Do not seed `admin` for profile writes; that masks ownership checks
 - Run tests: `npm run cypress` (interactive) or `npm run cypress:run` (headless)
 
@@ -208,6 +209,7 @@ and routes:
 - spa_utils **1.0.6** ids this host asserts (not local `nav-*` ids):
   - Token tab `admin-token-display-name-display` — config intercept `token.display_name`; missing claim renders `unknown` (no `name` / `given_name` / `email` fallback)
   - PageFrame chrome `nav-profile-name-display` below Logout — `config.token.display_name` in the drawer footer (`unknown` when the claim is blank or missing)
+- Description fields (not markdown): `profile-view-description-input` is an `AutoSaveField` root whose textarea is visible without a prior click; `customer-edit-description-input` is a readonly `v-textarea` read-only in Cypress. This SPA has no `MarkdownEditor`, so there is no `${id}-display` / `markdown-field-display` resting-view assertion here.
 - This SPA hosts Settings at `/customer/config` (`nav-settings-link`, admin-only)
 
 Do not define host `nav-*` ids in this SPA.
