@@ -3,6 +3,7 @@
  * Hamburger catalog role gates and collection hrefs are covered in spa_utils.
  */
 describe('Navigation (spa_utils PageFrame)', () => {
+  const isDev = Cypress.env('target') === 'dev'
   const APP_ORIGIN = Cypress.config('baseUrl') as string
   const CUSTOMER_HOME = '/customer/'
   const CONFIG_PATHNAME = '/customer/config'
@@ -45,6 +46,14 @@ describe('Navigation (spa_utils PageFrame)', () => {
 
   beforeEach(() => {
     cy.clearLocalStorage()
+    if (isDev) {
+      // Ensure a prior Vite response cannot bypass a later test's IdP stub.
+      cy.intercept({ method: 'GET', url: '**/customer/runtime-config.js', middleware: true }, (req) => {
+        req.on('before:response', (res) => {
+          res.headers['cache-control'] = 'no-store'
+        })
+      })
+    }
   })
 
   it('should serve the app shell and its assets under the /customer/ prefix', () => {
@@ -57,7 +66,9 @@ describe('Navigation (spa_utils PageFrame)', () => {
         '/customer/runtime-config.js'
       )
       expect(
-        sources.some((src) => src?.startsWith('/customer/assets/')),
+        sources.some((src) => isDev
+          ? src === '/customer/src/main.ts'
+          : src?.startsWith('/customer/assets/')),
         'app bundle is fetched under the prefix'
       ).to.equal(true)
     })
@@ -237,7 +248,8 @@ describe('Navigation (spa_utils PageFrame)', () => {
     })
   })
 
-  it('should serve the real container IdP config from the prefixed runtime-config.js', () => {
+  const packagedIt = isDev ? it.skip : it
+  packagedIt('should serve the real container IdP config from the prefixed runtime-config.js', () => {
     cy.request('/customer/runtime-config.js').then((response) => {
       expect(response.status).to.equal(200)
       expect(response.headers['cache-control']).to.contain('no-store')

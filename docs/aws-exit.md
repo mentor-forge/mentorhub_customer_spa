@@ -1,15 +1,12 @@
 # Customer SPA AWS exit audit
 
-The current lock pins SPA Utils 1.0.6 to its CodeArtifact tarball. The tracked
-root npm configuration routes the Mentor Forge scope to CodeArtifact. The local
-build wrapper obtains an AWS token and passes it to the Dockerfile as the
-`codeartifact_token` BuildKit secret. The GitHub publishing workflow does the
-same after assuming an AWS role. Additional npm configuration such as `scripts/.npmrc` is ignored. Developer setup in the README still refers to CodeArtifact.
+Before migration, the lock pinned SPA Utils 1.0.6 to its CodeArtifact tarball. The tracked
+root npm configuration routed the Mentor Forge scope to CodeArtifact. The local
+build wrapper obtained an AWS token and passed it to the Dockerfile as the
+`codeartifact_token` BuildKit secret. The GitHub publishing workflow did the
+same after assuming an AWS role. Additional npm configuration such as `scripts/.npmrc` is ignored. Developer setup in the README also required CodeArtifact.
 
 The cutover uses the published SPA Utils 1.0.7 package from GitHub Packages.
-The Admin SPA lock records the GitHub Packages tarball URL and integrity for
-that version, providing a known consumer pin. Confirm Customer SPA access
-separately.
 Verify a clean consumer install using the project’s read-scoped package token
 and verify that GitHub Actions can read the package. Keep the rest of npm on
 the public registry. Preserve the exact version, resolved URL, and integrity
@@ -41,7 +38,7 @@ An authenticated install and a second locked install with an empty cache
 and empty user and global npm configuration both passed. GitHub Packages
 returned HTTP 401 when fetching the pinned tarball without a token. All 39
 unit tests and the production build passed. Hosted repository-token validation
-and packaged Cypress acceptance follow in their respective tasks.
+will be checked after a pull request is opened.
 
 ## Container build
 
@@ -74,3 +71,25 @@ Linux amd64 and arm64. Its built-in token has `contents: read` and
 `packages: write` for fetching sources and scoped package access and publishing
 the existing GHCR image. Buildx receives the npm token as a BuildKit secret
 matching the Dockerfile.
+
+## Local acceptance
+
+The authenticated install and fresh-cache locked install passed during package
+migration. All 39 unit tests, TypeScript and Vite production build, and the
+AWS-free ARM64 container build passed. The repo has no lint script. The
+packaged browser suite exercises signed-token bootstrap, role gates, profile
+ownership, login and logout redirects, the prefixed API proxy, and runtime IdP
+configuration. A signed expired JWT received HTTP 401 through the packaged
+proxy. Unit coverage includes clearing authentication on API 401.
+
+The full packaged Cypress suite runs with `npm run cypress:run`. For Vite, use
+`npm run cypress:run:dev`. Vite now loads the runtime config at
+`/customer/runtime-config.js` without applying its base twice. The development
+suite checks the prefixed Vite entry and omits the Docker-only runtime-config
+and Nginx deployment cases. The packaged run still covers all of those
+assertions. Both suites were run using disposable Customer API and seeded
+MongoDB services.
+
+The same-repository GitHub Actions run must still verify the built-in token's
+package access when the branch opens for review. Post-merge image publication
+is a separate check.

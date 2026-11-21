@@ -1,6 +1,6 @@
 # F018 – Document SPA setup and verify provider-neutral runtime behavior
 
-**Status**: Pending
+**Status**: Shipped
 
 **Type**: Feature
 
@@ -72,4 +72,11 @@ AWS inventory, secure backup/restore evidence and separately approved decommissi
 
 ## Execution Notes
 
-Reserved for the execution agent. No implementation, tests, service changes or publication have been performed.
+Updated developer instructions for GitHub Packages token access, exact pinning, the committed lock, rollback and credential-free AWS migration. Login continues through shared SPA Utils and the runtime-configured endpoint.
+
+Added Cypress interactive and headless Vite modes after reproducing the double-prefixed Vite runtime configuration and Nginx-only test failures. Corrected Vite's runtime script path. The Vite suite checks the normal application flows and leaves all Nginx assertions in the packaged suite.
+
+- F015 authenticated install and clean-cache `npm ci` passed. F018 reran 39 unit tests, the type-checked production build, and the ARM64 image build. No lint script is declared.
+- All 23 full packaged Cypress cases passed using the isolated Customer API and seeded MongoDB, including ownership, role gating, token bootstrap, logout, redirect and runtime configuration checks. A separate request through the packaged proxy rejected a signed expired JWT with HTTP 401. The unit suite verified authentication clearing on 401.
+- The Vite mode passed all 14 applicable Cypress cases. Nine packaged-only checks remained in the full suite.
+- Hosted Actions evidence for the repository token is pending creation of the pull request after the Nginx gate. The active Developer Edition stack was left intact.

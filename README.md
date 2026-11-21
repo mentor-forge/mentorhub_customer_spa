@@ -43,8 +43,19 @@ Vue route `path` strings stay unprefixed. Vite `base: '/customer/'` prefixes the
 
 ## Developer Commands
 
+Set `GITHUB_TOKEN` in your shell using a GitHub Packages token with
+`read:packages` and access to the Mentor Forge SPA Utils package. Keep the token
+outside the repository. The tracked npm configuration sends it only to
+`npm.pkg.github.com`. Other dependencies come from the public npm registry.
+
+Use `npm ci` for repeatable installs. When intentionally changing the SPA Utils
+version, pin an exact published version and commit the matching lockfile. For a
+rollback, restore the last validated GitHub Packages pin and lockfile together.
+The container build uses the same lockfile and passes the package token through
+a BuildKit secret. No AWS credentials are needed.
+
 ```sh
-## install dependencies (run `mh` first for CodeArtifact auth)
+## install dependencies (with GITHUB_TOKEN available in the shell)
 npm ci
 
 ## install Cypress binaries
@@ -111,9 +122,9 @@ src/
 
 **Page Structure & Journey Boundary**: This Customer SPA hosts `/` (`CustomerEditPage.vue`), `/profile/` (`ProfilePage.vue`), and `/config` (`AdminPage.vue`). Event create/get remain on the API client for other journeys; there is no Event page here. Collections and list card dashboards live on the Discovery journey SPA (`/discovery/...`).
 
-**Note**: This SPA uses `@mentor-forge/mentorhub_spa_utils@1.0.6` for reusable components, composables, and utilities. See the [mentorhub_spa_utils README](../mentorhub_spa_utils/README.md) for complete documentation.
+**Note**: This SPA uses `@mentor-forge/mentorhub_spa_utils@1.0.7` for reusable components, composables, and utilities. See the [mentorhub_spa_utils README](../mentorhub_spa_utils/README.md) for complete documentation.
 
-spa_utils **1.0.6** owns Token-tab `display_name` (`admin-token-display-name-display`) and PageFrame chrome `nav-profile-name-display` (`config.token.display_name` below Logout in the drawer, with no fallback to `name` / `given_name` / `email` / `user_id` / `sub`). This SPA does not map a local display name. Missing Token-tab `display_name` displays `unknown`. Package `CardGrid` is gone; list collections stay on Discovery. Multi-card edit/detail pages would use package `DataCardGrid` / `DataCard` (this SPA has none — customer and profile are each one card). `MarkdownEditor` resting view (sanitized GFM) is owned by spa_utils; this SPA does not depend on `marked` or `dompurify` and does not host a markdown field.
+spa_utils **1.0.7** owns Token-tab `display_name` (`admin-token-display-name-display`) and PageFrame chrome `nav-profile-name-display` (`config.token.display_name` below Logout in the drawer, with no fallback to `name` / `given_name` / `email` / `user_id` / `sub`). This SPA does not map a local display name. Missing Token-tab `display_name` displays `unknown`. Package `CardGrid` is gone; list collections stay on Discovery. Multi-card edit/detail pages would use package `DataCardGrid` / `DataCard` (this SPA has none — customer and profile are each one card). `MarkdownEditor` resting view (sanitized GFM) is owned by spa_utils; this SPA does not depend on `marked` or `dompurify` and does not host a markdown field.
 
 ## Key Implementation Patterns
 
@@ -138,7 +149,7 @@ spa_utils **1.0.6** owns Token-tab `display_name` (`admin-token-display-name-dis
 - Example: `useQuery({ queryKey: ['profile', id], queryFn: () => api.getProfile(id) })`
 
 ### Reusable Components and Composables
-This SPA uses components and composables from `@mentor-forge/mentorhub_spa_utils@1.0.6`:
+This SPA uses components and composables from `@mentor-forge/mentorhub_spa_utils@1.0.7`:
 - **Shell**: `PageFrame` (universal navigation shell; local nav configuration is disallowed). Catalog rows and role gates are compiled into spa_utils. **Settings** lands on this SPA's `/config` via `hostingConfigHref()`. Token-tab `display_name` (`admin-token-display-name-display`) and chrome `nav-profile-name-display` are owned by spa_utils — do not invent a local display-name mapping.
 - **Components**: Prefer `DataCard` + typed editors for multi-card edit/detail (use package `DataCardGrid` when a page lays out several cards — this SPA has none). `AutoSaveField` / `AutoSaveSelect` remain for legacy pages. Do not import removed package `CardGrid` or add local `marked` / `dompurify`.
 - **Composables**: `provideEditorConfig`, `useErrorHandler`, `useRoles`, `useAuth`
@@ -175,10 +186,16 @@ See the [mentorhub_spa_utils README](../mentorhub_spa_utils/README.md) for compl
 - Uses Cypress against the packaged SPA on `http://localhost:8388` (`npm run service`). Do not point Cypress at `:8080`
 - Entry and visits are prefixed: `/customer/`, `/customer/profile/`, …
 - Prefer `cy.visitPrefixed(...)` from `cypress/support/commands.ts` over raw `cy.visit` for in-app routes — it asserts `PerformanceNavigationTiming` so a Vue Router rewrite cannot mask an un-prefixed document fetch
-- Specs: `navigation.cy.ts` (PageFrame chrome, this SPA’s `/customer/config` Settings host and admin gate, Token-tab / chrome `display_name` from spa_utils **1.0.6** (`admin-token-display-name-display`, `nav-profile-name-display`)), `customer.cy.ts`, `profile.cy.ts` (customer read; owning-customer write; mismatched `profile_id` → API 403; document `name` is not the token display claim), `deployment.cy.ts` (redirects, history fallback, cache headers, runtime-config, authenticated and unauthenticated `/customer/api` proxy). Hamburger catalog role gates are tested in spa_utils, not here.
-- This host does **not** assert a spa_utils **1.0.6** markdown resting view — there is no `MarkdownEditor` consumer. Profile description stays an always-visible `AutoSaveField` textarea (`profile-view-description-input`); customer description stays a readonly textarea (`customer-edit-description-input`). Do not invent a display-activation step for either.
+- Specs: `navigation.cy.ts` (PageFrame chrome, this SPA’s `/customer/config` Settings host and admin gate, Token-tab / chrome `display_name` from spa_utils **1.0.7** (`admin-token-display-name-display`, `nav-profile-name-display`)), `customer.cy.ts`, `profile.cy.ts` (customer read; owning-customer write; mismatched `profile_id` → API 403; document `name` is not the token display claim), `deployment.cy.ts` (redirects, history fallback, cache headers, runtime-config, authenticated and unauthenticated `/customer/api` proxy). Hamburger catalog role gates are tested in spa_utils, not here.
+- This host does **not** assert a spa_utils **1.0.7** markdown resting view — there is no `MarkdownEditor` consumer. Profile description stays an always-visible `AutoSaveField` textarea (`profile-view-description-input`); customer description stays a readonly textarea (`customer-edit-description-input`). Do not invent a display-activation step for either.
 - UI role gating is UX evidence only — API authorization lives in `customer_api`. Do not seed `admin` for profile writes; that masks ownership checks
-- Run tests: `npm run cypress` (interactive) or `npm run cypress:run` (headless)
+- Run tests: `npm run cypress` (interactive) or `npm run cypress:run` (headless) for the packaged SPA
+
+For Vite, start the backing API with `npm run api`, then run `npm run dev`.
+Use `npm run cypress:dev` interactively or `npm run cypress:run:dev` headlessly.
+Dev mode exercises the application and its API through Vite. The packaged suite
+also checks Nginx redirects, caching, hashed assets, and injected runtime
+configuration.
 
 > [!NOTE]
 > Ensure the container service stack is running via `npm run service` before executing `npm run cypress:run`. `npm run dev` must not be running as both use port 8388.
@@ -206,7 +223,7 @@ role gates and collection hrefs are tested in spa_utils — this SPA only assert
 and routes:
 
 - Always present for authenticated users: `nav-drawer-toggle`, `page-frame-title`, `nav-profile-link`
-- spa_utils **1.0.6** ids this host asserts (not local `nav-*` ids):
+- spa_utils **1.0.7** ids this host asserts (not local `nav-*` ids):
   - Token tab `admin-token-display-name-display` — config intercept `token.display_name`; missing claim renders `unknown` (no `name` / `given_name` / `email` fallback)
   - PageFrame chrome `nav-profile-name-display` below Logout — `config.token.display_name` in the drawer footer (`unknown` when the claim is blank or missing)
 - Description fields (not markdown): `profile-view-description-input` is an `AutoSaveField` root whose textarea is visible without a prior click; `customer-edit-description-input` is a readonly `v-textarea` read-only in Cypress. This SPA has no `MarkdownEditor`, so there is no `${id}-display` / `markdown-field-display` resting-view assertion here.
