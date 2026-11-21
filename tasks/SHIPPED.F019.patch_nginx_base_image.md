@@ -1,6 +1,6 @@
 # F019 — Patch the Nginx base image built by CI
 
-**Status**: Pending  
+**Status**: Shipped
 **Type**: Defect  
 **Depends On**: F018  
 **Issue**: https://github.com/mentor-forge/mentorhub_customer_spa/issues/24  
@@ -85,4 +85,73 @@ All other files remain outside this task's output scope. If verification reveals
 
 ## Execution Notes
 
-Reserved for the execution agent: selected release/tag/index digest, advisory applicability, commands and results, both architecture image identities, scan evidence, blockers, and post-merge publication verification. No implementation or packaging tests have been run during planning.
+### Base selection and applicability
+
+On November 21, 2026, the [upstream stable release listing](https://nginx.org/en/download.html)
+identified Nginx 1.30.7 as the current stable release. The
+[official Docker repository](https://github.com/nginx/docker-nginx) and
+`docker buildx imagetools inspect nginx:1.30.7-alpine` confirmed both target
+platforms in the official OCI image index
+`sha256:caf4e1e032a20f9c3c5e28fc7f25ffd768ad8677b4975c54193075997b3a97e3`.
+The index resolves to `sha256:4d1d4ce08432dc7dfe4af762cb224ce6b5273ae878f41e020ea2425d02ea91a4`
+for AMD64 and `sha256:efd51f02e6ed0fc6d9d5bb6c700ba28b560e1c61dae9ad125bd5bad55cd2bd11`
+for ARM64. The Dockerfile pins the index. The existing workflow's `pull: true`
+and wrapper's `docker build --pull` already meet the fresh-base requirement.
+Workflow YAML validation confirmed main-only delivery, both architectures,
+GHCR tags and cache settings, and GitHub Packages BuildKit secret wiring.
+
+The [upstream advisories](https://nginx.org/en/security_advisories.html) list
+1.30.7 as fixed for the current stable resolver, alias/try-files, HTTP/2,
+HTTP/3, TLS, mail and stream advisories. The prior running binary and the
+reported CVE were unspecified, so exposure in an earlier published image is
+unconfirmed. The effective Customer SPA configuration uses internal DNS
+resolution and HTTP proxy/history routing. It has an HTTP listener on port 80
+and does not enable HTTP/2, HTTP/3, TLS termination, mail, stream or PROXY
+protocol. The history fallback uses `try_files` without an `alias` directive.
+
+### Pre-merge acceptance
+
+- Ran a clean `npm ci --include=dev` with GitHub Packages credentials and no
+  AWS variables, `npm run test` (39 passed), and `npm run build` (passed).
+  There is no lint script. `sh -n scripts/docker-build.sh`, `git diff --check`,
+  and unchanged application lockfile and Cypress spec checks passed.
+- Ran `npm run container` and used isolated equivalents of `npm run api` and
+  `npm run service` to avoid the global `mh down`. Fresh seeded MongoDB and
+  the Customer API backed the exact new Customer SPA ARM64 image; its running
+  container’s image ID matched the local image ID. Ran the full
+  `npm run cypress:run` at `http://localhost:8388/customer/` with Vite stopped.
+  All 23 cases passed, including all eight deployment checks. The running
+  container passed `nginx -t -c /tmp/nginx.conf`.
+- The Developer Edition gateway configuration on isolated port 8080 served
+  the shared-origin Customer page and runtime config. The prefixed API returned
+  200 with the local test token and 401 without credentials.
+
+### Image and scan evidence
+
+Native ARM64 and emulated AMD64 application builds completed locally without
+a registry push. `nginx -v` and `nginx -V` reported 1.30.7 on both final
+images. The compiled capabilities include HTTP SSL, HTTP/2, HTTP/3, mail,
+stream, and stream SSL preread. The effective configuration findings above
+describe which of those features the SPA actually enables.
+
+| Platform | Final local image ID |
+| --- | --- |
+| ARM64 | `sha256:2ca04556fd3a31d18c58ad8d3dcd6f1512fcaf32f3d8f64de8e1b318a62dcf13` |
+| AMD64 | `sha256:7fd41542f5d16b7fe2cdd468dd833097675cd1afe150c17611e3a69c58bebca3` |
+
+Trivy 0.76.2 scanned both final image archives using vulnerability DB schema
+2, updated November 21, 2026 at 13:02 UTC and downloaded at 17:43 UTC. Both
+Alpine 3.24.4 scans reported zero Nginx package findings and 12 separate
+Alpine dependency findings each: five for libcrypto3, five for libssl3, one
+for libxml2, and one for zlib. The libxml2 finding is high severity. Track
+those dependency findings separately from this Nginx update. The binary
+verification and upstream advisory check are independent of the package scan.
+
+### Post-merge publication
+
+After hosted CI publishes the image from main, record the GHCR multi-platform
+index digest and both manifest digests. Pull the application by that immutable
+digest for each platform and verify `nginx -v`, `nginx -V`, and the fresh
+published-image scan against the pre-merge findings. Promote that same
+application digest through environments. Keep issue 24 open until the
+published evidence is verified.

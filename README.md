@@ -235,6 +235,21 @@ Do not define host `nav-*` ids in this SPA.
 
 `.github/workflows/docker-push.yml` builds and pushes the container image. Registry credentials and dependency policy for your org live in SRE / standards docs, not in this README.
 
+### Nginx base updates
+
+The runtime uses Nginx 1.30.7 on Alpine, pinned to the official multi-platform
+index in the Dockerfile. Before updating, check [stable releases](https://nginx.org/en/download.html)
+and [security advisories](https://nginx.org/en/security_advisories.html), then
+confirm the proposed tag and index cover both AMD64 and ARM64 with
+`docker buildx imagetools inspect`.
+
+Build both platform images, check `nginx -V`, scan each final image, and run
+packaged Cypress against the freshly built local image. In the running SPA,
+validate the rendered configuration with `nginx -t -c /tmp/nginx.conf`.
+After merge, record the published GHCR index digest and confirm the Nginx
+version for both platforms before closing the security issue. Promote the
+same verified application digest across environments.
+
 ## Configuration
 - **Supported browser entry**: `http://<host>:8080/customer/` via Developer Edition welcome / ALB
 - **Direct-port debugging only**: `http://localhost:8388/customer/` (Cypress, OpenAPI, `npm run service`); `http://localhost:8388/` redirects to `/customer/`
