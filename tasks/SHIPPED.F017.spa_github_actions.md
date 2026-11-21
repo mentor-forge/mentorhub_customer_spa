@@ -1,6 +1,6 @@
 # F017 – Update SPA GitHub Actions registry permissions and validation
 
-**Status**: Pending
+**Status**: Shipped
 
 **Type**: Feature
 
@@ -73,4 +73,16 @@ AWS inventory, secure backup/restore evidence and separately approved decommissi
 
 ## Execution Notes
 
-Reserved for the execution agent. No implementation, tests, service changes or publication have been performed.
+Replaced CodeArtifact and AWS OIDC in the main-only multi-platform publisher
+with the built-in GitHub token and the Dockerfile's npm BuildKit secret.
+Added separate PR validation with a credential-free lockfile job for every
+PR and a read-only package-authenticated test/build job limited to trusted
+same-repository PRs. Documented the SPA Utils package Actions access grant
+and how to diagnose authorization failures.
+
+Local validation passed: YAML parsing and trigger/permission/secret checks,
+the lockfile check with no package token, 39 unit tests, TypeScript and
+production build, and a clean ARM64 Docker build with AWS credentials unset.
+The clean build reported the existing shell-form CMD warning. Hosted PR
+validation must confirm the repository token's package access after the
+authorized push and PR creation.

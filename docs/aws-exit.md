@@ -51,3 +51,26 @@ secret. The dependency install uses `npm ci` and a registry-scoped configuration
 on a temporary mount. The Docker context excludes root and nested npm config
 files. The runtime image contains the Nginx deployment and built assets.
 `CUSTOMER_SPA_IMAGE` can override the default GHCR image tag for isolated builds.
+
+## GitHub Actions
+
+Grant the Customer SPA repository read access under the SPA Utils npm package’s
+**Manage Actions access** settings. Same-repository pull requests use the
+workflow’s built-in token with `contents: read` and `packages: read` for the
+locked install and the BuildKit npm secret. The workflow runs unit tests,
+TypeScript checks, and a container build without publishing. If the npm
+install or container build receives a registry authorization error, check
+this package grant. A local read token verifies the package, while the hosted
+run verifies the repository’s access.
+
+Fork and Dependabot pull requests use the credential-free lockfile checks.
+Those checks compare the lockfile’s pinned dependencies and approved registry
+origins to the manifest without installing dependencies or building an image.
+The credentialed job runs only for same-repository pull requests from
+maintainers and other authorized contributors.
+
+The separate publishing workflow runs on pushes to main and builds for
+Linux amd64 and arm64. Its built-in token has `contents: read` and
+`packages: write` for fetching sources and scoped package access and publishing
+the existing GHCR image. Buildx receives the npm token as a BuildKit secret
+matching the Dockerfile.
