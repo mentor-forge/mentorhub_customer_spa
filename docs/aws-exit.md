@@ -28,3 +28,17 @@ The unpinned Nginx runtime uses the stable Alpine tag. The separate Nginx task
 will select and validate a version for both supported architectures. The
 packaged Cypress suite remains the gate for Nginx behavior. Check Vite coverage
 separately during acceptance.
+
+## GitHub Packages lock
+
+Set `GITHUB_TOKEN` to a GitHub Packages read token and run `npm ci`. The
+tracked npm configuration uses that variable only at the GitHub Packages
+host. SPA Utils is pinned to the exact published 1.0.7 tarball and its
+verified SHA-512 integrity. The three remaining CodeArtifact tarball URLs
+moved to public npm with their versions and integrity unchanged.
+
+An authenticated install and a second locked install with an empty cache
+and empty user and global npm configuration both passed. GitHub Packages
+returned HTTP 401 when fetching the pinned tarball without a token. All 39
+unit tests and the production build passed. Hosted repository-token validation
+and packaged Cypress acceptance follow in their respective tasks.

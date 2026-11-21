@@ -1,6 +1,6 @@
 # F015 – Migrate SPA npm source, exact package pin and lockfile
 
-**Status**: Pending
+**Status**: Shipped
 
 **Type**: Feature
 
@@ -76,4 +76,11 @@ AWS inventory, secure backup/restore evidence and separately approved decommissi
 
 ## Execution Notes
 
-Reserved for the execution agent. No implementation, tests, service changes or publication have been performed.
+Verified the published SPA Utils 1.0.7 tarball and SHA-512 from GitHub Packages.
+The exact package pin and scoped environment-based registry configuration are
+in place. The three other CodeArtifact lock URLs now point to public npm with
+unchanged versions and checksums. The install preserved all other lock entries.
+Authenticated `npm install --include=dev` and a fresh-directory, empty-cache
+`npm ci --include=dev` passed. Fetching the exact tarball without credentials
+returned GitHub Packages HTTP 401 with no AWS fallback. All 39 unit tests,
+TypeScript checks, and the Vite production build passed.
