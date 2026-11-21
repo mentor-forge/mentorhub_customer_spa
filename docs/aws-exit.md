@@ -42,3 +42,12 @@ and empty user and global npm configuration both passed. GitHub Packages
 returned HTTP 401 when fetching the pinned tarball without a token. All 39
 unit tests and the production build passed. Hosted repository-token validation
 and packaged Cypress acceptance follow in their respective tasks.
+
+## Container build
+
+Set `GITHUB_TOKEN` to a credential with GitHub Packages read access and run
+`npm run container`. The wrapper forwards it as the `github_npm_token` BuildKit
+secret. The dependency install uses `npm ci` and a registry-scoped configuration
+on a temporary mount. The Docker context excludes root and nested npm config
+files. The runtime image contains the Nginx deployment and built assets.
+`CUSTOMER_SPA_IMAGE` can override the default GHCR image tag for isolated builds.

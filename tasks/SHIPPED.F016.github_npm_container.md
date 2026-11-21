@@ -1,6 +1,6 @@
 # F016 – Use GitHub npm BuildKit secrets in SPA container builds
 
-**Status**: Pending
+**Status**: Shipped
 
 **Type**: Feature
 
@@ -76,4 +76,16 @@ AWS inventory, secure backup/restore evidence and separately approved decommissi
 
 ## Execution Notes
 
-Reserved for the execution agent. No implementation, tests, service changes or publication have been performed.
+Replaced the CodeArtifact token lookup with the required GitHub Packages BuildKit
+secret. Dependency installation uses the committed lock and a temporary,
+registry-scoped npm configuration. The build context excludes root and nested
+npm config files, and runtime and deployment settings are unchanged.
+
+Shell syntax, missing-token behavior, and `git diff --check` passed. With AWS
+variables unset, `npm run container` built an isolated ARM64 image. Image history
+and filesystem checks found no npm auth configuration or token environment
+variable in the runtime image. All 23 packaged Cypress tests passed in Electron
+against that image, the migrated Customer API, and disposable seeded MongoDB
+using a separate Docker network and a temporary welcome-route fixture. The
+suite verified the journey prefix and runtime config, real API authorization
+and proxying, and login and logout redirects.
