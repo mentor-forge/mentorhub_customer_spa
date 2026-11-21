@@ -1,6 +1,6 @@
 # F014 – Audit SPA dependency, build and runtime coupling
 
-**Status**: Pending
+**Status**: Shipped
 
 **Type**: Feature
 
@@ -70,4 +70,4 @@ AWS inventory, secure backup/restore evidence and separately approved decommissi
 
 ## Execution Notes
 
-Reserved for the execution agent. No implementation, tests, service changes or publication have been performed.
+Reviewed the tracked lock and root npm configuration, ignore rules, local Docker build wrapper, Dockerfile, publishing workflow, shared SPA Utils imports, runtime login template, and Nginx proxy configuration. Recorded package delivery, login ownership, the public package prerequisite, and rollback in `docs/aws-exit.md`. The Admin SPA lock provides a known GitHub Packages pin for SPA Utils 1.0.7. Customer SPA registry access and CI are verified in later tasks. No services were started for this audit.
